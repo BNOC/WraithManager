@@ -5,7 +5,7 @@ import { createContext, useContext, useState, useLayoutEffect } from "react";
 export const WOW_COLORS: { name: string; color: string }[] = [
   { name: "Warlock", color: "#8788ee" },
   { name: "Evoker", color: "#33937f" },
-  { name: "Death Knight", color: "#c41f3b" },
+  { name: "Death Knight", color: "#c41e3a" },
   { name: "Demon Hunter", color: "#a330c9" },
   { name: "Paladin", color: "#f48cba" },
   { name: "Druid", color: "#ff7c0a" },
@@ -13,7 +13,7 @@ export const WOW_COLORS: { name: string; color: string }[] = [
   { name: "Shaman", color: "#0070dd" },
   { name: "Hunter", color: "#aad372" },
   { name: "Monk", color: "#00ff98" },
-  { name: "Warrior", color: "#c69b3a" },
+  { name: "Warrior", color: "#c69b6d" },
   { name: "Rogue", color: "#fff468" },
 ];
 
@@ -93,8 +93,8 @@ export const BG_THEMES: BgTheme[] = [
 
 const DEFAULT_PRIMARY = "#8788ee";
 const DEFAULT_BG = BG_THEMES[0];
-const STORAGE_KEY_PRIMARY = "wraithmanager-theme-primary";
-const STORAGE_KEY_BG = "wraithmanager-theme-bg";
+const STORAGE_KEY_PRIMARY = "wraithdebt-theme-primary";
+const STORAGE_KEY_BG = "wraithdebt-theme-bg";
 
 interface ThemeContextValue {
   primary: string;

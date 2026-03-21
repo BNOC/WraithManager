@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
+import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
 
 function formatGold(n: number) {
@@ -45,6 +46,7 @@ export default async function DashboardPage() {
   });
 
   const grandOutstanding = crafterSummaries.reduce((s, c) => s + c.outstanding, 0);
+  const grandTotalPaid = crafterSummaries.reduce((s: number, c: { totalPaid: number }) => s + c.totalPaid, 0);
 
   // Inventory
   const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number; remainingValue: number }>();
@@ -80,12 +82,12 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Overview</p>
           <h1 className="text-3xl font-bold text-ink">Dashboard</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <Link
             href="/consumables/new"
             className="bg-primary hover:opacity-90 text-white font-semibold px-4 py-2 rounded-xl transition-opacity text-sm"
@@ -105,8 +107,8 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: "Outstanding", value: formatGold(grandOutstanding), accent: true, empty: false },
+          { label: "Total Paid", value: formatGold(grandTotalPaid), accent: false, empty: false },
           { label: "Inventory Value", value: formatGold(totalInventoryValue), accent: false, empty: false },
-          { label: "", value: "", accent: false, empty: true },
           { label: "Crafters", value: crafters.length.toString(), accent: false, empty: false },
         ].map(({ label, value, accent, empty }) => (
           <div key={label || "empty"} className={`bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30 ${empty ? "opacity-30" : ""}`}>
@@ -151,7 +153,10 @@ export default async function DashboardPage() {
                     : ["text-emerald-400", "border-rim"];
                 return (
                   <div key={`${item.itemType}::${item.itemName}`} className={`bg-surface border ${borderAccent} rounded-2xl p-4 shadow-lg shadow-black/20`}>
-                    <ItemTypeBadge type={item.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                    <div className="flex items-center gap-2">
+                      <ItemTypeIcon type={item.itemType as Parameters<typeof ItemTypeIcon>[0]["type"]} size={18} />
+                      <ItemTypeBadge type={item.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                    </div>
                     {item.itemName && <p className="text-ink-faint text-xs mt-1.5 truncate">{item.itemName}</p>}
                     <p className={`text-3xl font-bold mt-2 ${numColor}`}>
                       {item.total === 0 ? "—" : item.remaining}
@@ -162,7 +167,10 @@ export default async function DashboardPage() {
 
               {/* Merged feast card */}
               <div className={`bg-surface border ${feastBorder} rounded-2xl p-4 shadow-lg shadow-black/20`}>
-                <ItemTypeBadge type={"FEAST" as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                <div className="flex items-center gap-2">
+                  <ItemTypeIcon type={"FEAST" as Parameters<typeof ItemTypeIcon>[0]["type"]} size={18} />
+                  <ItemTypeBadge type={"FEAST" as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                </div>
                 <p className={`text-3xl font-bold mt-2 ${feastNumColor}`}>
                   {feastCraftedTotal === 0 ? "—" : feastTotal}
                 </p>
@@ -232,6 +240,7 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
                       <RaidDayBadge date={log.raidDate} />
                       <span className="text-ink-dim text-xs">{formatDate(log.raidDate)}</span>
+                      <ItemTypeIcon type={log.itemType} size={16} />
                       <ItemTypeBadge type={log.itemType} />
                       {log.itemName && <span className="text-ink-dim text-xs truncate">{log.itemName}</span>}
                       <span className="text-ink-faint text-xs">×{log.quantityUsed}</span>
@@ -260,6 +269,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-rim">
@@ -275,6 +285,7 @@ export default async function DashboardPage() {
                   <tr key={b.id} className="hover:bg-surface-hi/50 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2 flex-wrap">
+                        <ItemTypeIcon type={b.itemType} size={16} />
                         <span className="text-ink font-medium">{b.itemName}</span>
                         <ItemTypeBadge type={b.itemType} />
                       </div>
@@ -292,6 +303,7 @@ export default async function DashboardPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

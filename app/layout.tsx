@@ -12,7 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "WraithManager - Guild Consumables Tracker",
+  title: "WraithDebt - Guild Consumables Tracker",
   description: "Track consumables, payments, and crafters for your WoW raid guild",
 };
 
@@ -26,14 +26,24 @@ export default function RootLayout({
       <body className="min-h-full bg-canvas text-ink antialiased">
         <ThemeProvider>
           <div className="flex min-h-screen">
-            {/* Side nav — fixed, desktop only */}
-            <aside className="hidden md:block fixed inset-y-0 left-0 w-60 z-30 bg-surface border-r border-rim">
-              <SideNav />
-            </aside>
+            {/* SideNav renders desktop fixed sidebar + mobile bottom bar */}
+            <SideNav />
 
             {/* Main content */}
-            <main className="flex-1 md:ml-60 min-h-screen">
-              <div className="max-w-5xl mx-auto px-5 py-8 pb-24 md:pb-10">
+            <main className="flex-1 md:ml-60 min-h-screen flex flex-col">
+              {/* Top header — mobile only */}
+              <header className="md:hidden sticky top-0 z-20 bg-surface/80 backdrop-blur border-b border-rim px-4 sm:px-5 py-3 flex items-center gap-2.5">
+                <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor" className="text-primary shrink-0">
+                  <path d="M8 1C4.69 1 2 3.69 2 7v6.5l1.5-1.25 1.5 1.25 1.5-1.25 1.5 1.25 1.5-1.25 1.5 1.25 1.5-1.25V7c0-3.31-2.69-6-6-6z" />
+                  <circle cx="5.8" cy="7" r="1" fill="var(--color-surface)" />
+                  <circle cx="10.2" cy="7" r="1" fill="var(--color-surface)" />
+                </svg>
+                <span className="font-bold text-ink tracking-tight leading-none">
+                  Wraith<span className="text-primary">Debt</span>
+                </span>
+              </header>
+
+              <div className="max-w-5xl mx-auto w-full px-4 sm:px-5 py-6 sm:py-8 pb-20 md:pb-10">
                 {children}
               </div>
             </main>

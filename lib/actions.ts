@@ -8,15 +8,14 @@ import { ItemType } from "@prisma/client";
 // ---- Crafter actions ----
 
 export async function createCrafter(formData: FormData) {
-  const name = formData.get("name") as string;
-  const characterName = formData.get("characterName") as string;
+  const name = (formData.get("name") as string)?.trim();
 
-  if (!name || !characterName) {
-    throw new Error("Name and character name are required");
+  if (!name) {
+    throw new Error("Name is required");
   }
 
   await prisma.crafter.create({
-    data: { name, characterName },
+    data: { name, characterName: name },
   });
 
   revalidatePath("/crafters");

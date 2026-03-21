@@ -11,7 +11,7 @@ const typeConfig: Record<ItemType, { label: string; className: string }> = {
   },
   FEAST: {
     label: "Feast",
-    className: "bg-amber-500/10 text-amber-300 border border-amber-500/30",
+    className: "bg-blue-500/10 text-blue-300 border border-blue-500/30",
   },
   VANTUS_RUNE: {
     label: "Vantus Rune",
@@ -23,10 +23,10 @@ const typeConfig: Record<ItemType, { label: string; className: string }> = {
   },
 };
 
-export function ItemTypeBadge({ type }: { type: ItemType }) {
+export function ItemTypeBadge({ type, small }: { type: ItemType; small?: boolean }) {
   const config = typeConfig[type];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium ${config.className}`}>
+    <span className={`inline-flex items-center rounded font-medium ${config.className} ${small ? "px-1.5 py-px text-[10px]" : "px-2 py-0.5 rounded-lg text-xs"}`}>
       {config.label}
     </span>
   );

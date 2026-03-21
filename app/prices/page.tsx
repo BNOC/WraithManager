@@ -4,6 +4,7 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { createPriceConfig } from "@/lib/actions";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
+import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import type { ItemType } from "@prisma/client";
 
 const ALL_TYPES: { value: ItemType; label: string }[] = [
@@ -132,7 +133,10 @@ export default async function PricesPage({ searchParams }: PageProps) {
               return (
                 <tr key={value} className="border-b border-rim/50">
                   <td className="px-4 py-3">
-                    <ItemTypeBadge type={value} />
+                    <div className="flex items-center gap-2">
+                      <ItemTypeIcon type={value} />
+                      <ItemTypeBadge type={value} />
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-right">
                     {config ? (
@@ -239,6 +243,7 @@ export default async function PricesPage({ searchParams }: PageProps) {
               ))}
             </div>
           </div>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-rim bg-surface/50">
@@ -266,10 +271,13 @@ export default async function PricesPage({ searchParams }: PageProps) {
               {sorted.map((c) => (
                 <tr key={c.id} className="border-b border-rim/50 hover:bg-surface-hi/20">
                   <td className="px-4 py-3">
-                    <ItemTypeBadge type={c.itemType} />
-                    {currentPrices.get(c.itemType)?.id === c.id && (
-                      <span className="ml-2 text-xs text-green-500">current</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <ItemTypeIcon type={c.itemType} />
+                      <ItemTypeBadge type={c.itemType} />
+                      {currentPrices.get(c.itemType)?.id === c.id && (
+                        <span className="text-xs text-green-500">current</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-right text-primary font-medium">
                     {formatGold(c.price)}
@@ -284,6 +292,7 @@ export default async function PricesPage({ searchParams }: PageProps) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

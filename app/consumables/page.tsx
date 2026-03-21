@@ -3,7 +3,8 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
-import { RaidDayBadge } from "@/components/RaidDayBadge";
+import { ItemTypeIcon } from "@/components/ItemTypeIcon";
+import { ConsumablesFilter } from "@/components/ConsumablesFilter";
 import type { ItemType } from "@prisma/client";
 
 function formatGold(n: number) {
@@ -25,7 +26,7 @@ interface PageProps {
 export default async function ConsumablesPage({ searchParams }: PageProps) {
   const params = await searchParams;
 
-  const crafters = await prisma.crafter.findMany({ orderBy: { characterName: "asc" } });
+  const crafters = await prisma.crafter.findMany({ orderBy: { name: "asc" } });
 
   const where: Record<string, unknown> = {};
   if (params.crafter) where.crafterId = params.crafter;
@@ -61,17 +62,12 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
     return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus };
   });
 
-  const totalValue = rows.reduce((s, r) => s + r.totalValue, 0);
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Craft Log</p>
           <h1 className="text-3xl font-bold text-ink">Consumables</h1>
-          <p className="text-ink-dim mt-1">
-            {rows.length} batches · {formatGold(totalValue)} total value crafted
-          </p>
         </div>
         <Link
           href="/consumables/new"
@@ -82,47 +78,12 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
       </div>
 
       {/* Filters */}
-      <div className="bg-surface border border-rim rounded-2xl p-4 flex flex-wrap gap-3 items-center shadow-lg shadow-black/30">
-        <span className="text-ink-dim text-sm font-medium">Filter:</span>
-
-        <div className="flex gap-1 flex-wrap">
-          <Link
-            href={buildUrl(params, "crafter", undefined)}
-            className={filterClass(!params.crafter)}
-          >
-            All Crafters
-          </Link>
-          {crafters.map((c) => (
-            <Link
-              key={c.id}
-              href={buildUrl(params, "crafter", c.id)}
-              className={filterClass(params.crafter === c.id)}
-            >
-              {c.characterName}
-            </Link>
-          ))}
-        </div>
-
-        <span className="text-ink-faint">|</span>
-
-        <div className="flex gap-1 flex-wrap">
-          {[
-            { value: undefined, label: "All Types" },
-            { value: "FLASK_CAULDRON", label: "Flask Cauldron" },
-            { value: "POTION_CAULDRON", label: "Potion Cauldron" },
-            { value: "FEAST", label: "Feast" },
-            { value: "VANTUS_RUNE", label: "Vantus Rune" },
-            { value: "OTHER", label: "Other" },
-          ].map((opt) => (
-            <Link
-              key={opt.label}
-              href={buildUrl(params, "type", opt.value)}
-              className={filterClass(params.type === opt.value || (!params.type && !opt.value))}
-            >
-              {opt.label}
-            </Link>
-          ))}
-        </div>
+      <div className="relative">
+        <ConsumablesFilter
+          crafters={crafters.map((c) => ({ id: c.id, name: c.name }))}
+          activeCrafter={params.crafter ?? ""}
+          activeType={params.type ?? ""}
+        />
       </div>
 
       {/* Table */}
@@ -138,6 +99,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-rim bg-surface/50">
@@ -156,13 +118,14 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-rim/50 hover:bg-surface-hi/20 transition-colors"
+                  className={`border-b border-rim/50 transition-colors ${row.remaining === 0 ? "opacity-40" : "hover:bg-surface-hi/20"}`}
                 >
                   <td className="px-4 py-3">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-nowrap">
+                        <ItemTypeIcon type={row.itemType} size={16} />
                         <span className="text-ink font-medium">{row.itemName}</span>
-                        <ItemTypeBadge type={row.itemType} />
+                        <ItemTypeBadge type={row.itemType} small />
                       </div>
                       {row.notes && (
                         <p className="text-ink-dim text-xs">{row.notes}</p>
@@ -196,11 +159,6 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     <span className="text-primary font-medium">
                       {formatGold(row.owedAmount)}
                     </span>
-                    {row.remaining > 0 && (
-                      <p className="text-ink-dim text-xs mt-0.5">
-                        {row.remaining} unused
-                      </p>
-                    )}
                   </td>
                   <td className="px-4 py-3 hidden lg:table-cell">
                     <PaymentBadge
@@ -210,13 +168,13 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     />
                   </td>
                   <td className="px-4 py-3 text-ink-dim text-xs hidden lg:table-cell">
-                    <RaidDayBadge date={row.craftedAt} />
-                    <div className="mt-0.5">{formatDate(row.craftedAt)}</div>
+                    {formatDate(row.craftedAt)}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
@@ -246,22 +204,3 @@ function PaymentBadge({
   return <span className="text-xs text-ink-dim">Unpaid</span>;
 }
 
-function filterClass(active: boolean) {
-  return active
-    ? "px-2.5 py-1 rounded-xl text-xs font-medium bg-primary/10 text-primary border border-primary/50"
-    : "px-2.5 py-1 rounded-xl text-xs font-medium bg-surface-hi text-ink-dim border border-rim hover:text-ink transition-colors";
-}
-
-function buildUrl(
-  current: Record<string, string | undefined>,
-  key: string,
-  value: string | undefined
-): string {
-  const p = new URLSearchParams();
-  for (const k of ["crafter", "type"]) {
-    const v = k === key ? value : current[k];
-    if (v) p.set(k, v);
-  }
-  const qs = p.toString();
-  return `/consumables${qs ? `?${qs}` : ""}`;
-}

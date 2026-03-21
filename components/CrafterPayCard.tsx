@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
+import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { BatchPayButton } from "@/components/BatchPayButton";
 
 const PAGE_SIZE = 10;
@@ -106,6 +107,7 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
                   </button>
                 </div>
               )}
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-rim/50 bg-surface/30">
@@ -125,6 +127,7 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
                       </td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
+                          <ItemTypeIcon type={batch.itemType as Parameters<typeof ItemTypeIcon>[0]["type"]} size={18} />
                           <ItemTypeBadge type={batch.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
                           <span className="text-ink text-xs">{batch.itemName}</span>
                         </div>
@@ -158,6 +161,7 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
                   ))}
                 </tbody>
               </table>
+              </div>
               {showAll && batchRows.length > PAGE_SIZE && (
                 <div className="px-4 py-2 border-t border-rim/30">
                   <button

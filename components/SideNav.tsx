@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const NAV = [
   {
@@ -22,11 +23,17 @@ const NAV = [
   },
 ];
 
-// Mobile bottom nav (same items but icon-only)
-const MOBILE_NAV = NAV.flatMap((g) => g.items);
+// Mobile bottom nav — main items only so labels fit
+const MOBILE_NAV = NAV[0].items;
 
 export function SideNav() {
   const pathname = usePathname();
+  const [configOpen, setConfigOpen] = useState(false);
+
+  // Close config menu on navigation
+  useEffect(() => { setConfigOpen(false); }, [pathname]);
+
+  const configActive = NAV[1].items.some((i) => pathname.startsWith(i.href));
 
   function isActive(href: string) {
     return href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -35,13 +42,13 @@ export function SideNav() {
   return (
     <>
       {/* Desktop side nav */}
-      <nav className="hidden md:flex flex-col h-full">
+      <nav className="hidden md:flex flex-col fixed inset-y-0 left-0 w-60 z-30 bg-surface border-r border-rim">
         {/* Logo */}
         <div className="px-5 py-6 border-b border-rim">
           <Link href="/" className="flex items-center gap-2.5 group">
             <WraithIcon />
             <span className="font-bold text-ink tracking-tight leading-none">
-              Wraith<span className="text-primary">Manager</span>
+              Wraith<span className="text-primary">Debt</span>
             </span>
           </Link>
         </div>
@@ -86,14 +93,46 @@ export function SideNav() {
       </nav>
 
       {/* Mobile bottom bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-rim flex items-center justify-around px-1 py-1.5 safe-area-bottom">
+      {/* Config slide-up panel */}
+      {configOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="md:hidden fixed inset-0 z-40"
+            onClick={() => setConfigOpen(false)}
+          />
+          {/* Panel */}
+          <div className="md:hidden fixed bottom-16 left-0 right-0 z-50 mx-3 mb-1 bg-surface border border-rim rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
+            <p className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-widest text-ink-faint border-b border-rim">
+              Config
+            </p>
+            {NAV[1].items.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 transition-colors border-b border-rim/50 last:border-0 ${
+                    active ? "text-primary bg-primary/5" : "text-ink hover:bg-surface-hi"
+                  }`}
+                >
+                  <span className={`w-5 h-5 shrink-0 ${active ? "text-primary" : "text-ink-faint"}`}>{item.icon}</span>
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-rim flex items-center justify-around px-1 py-1 safe-area-bottom">
         {MOBILE_NAV.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-colors ${
                 active ? "text-primary" : "text-ink-faint hover:text-ink-dim"
               }`}
             >
@@ -102,6 +141,18 @@ export function SideNav() {
             </Link>
           );
         })}
+
+        {/* Config tab */}
+        <button
+          type="button"
+          onClick={() => setConfigOpen((v) => !v)}
+          className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-colors ${
+            configActive || configOpen ? "text-primary" : "text-ink-faint hover:text-ink-dim"
+          }`}
+        >
+          <span className="w-5 h-5"><ConfigIcon /></span>
+          <span className="text-[10px] font-medium">Config</span>
+        </button>
       </nav>
     </>
   );
@@ -117,6 +168,15 @@ function WraithIcon() {
       {/* Eyes */}
       <circle cx="5.8" cy="7" r="1" fill="var(--color-surface)" />
       <circle cx="10.2" cy="7" r="1" fill="var(--color-surface)" />
+    </svg>
+  );
+}
+
+function ConfigIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
