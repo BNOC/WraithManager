@@ -4,7 +4,6 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
-import { deleteUsageLog } from "@/lib/actions";
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -124,14 +123,12 @@ export default async function UsagePage() {
                             <span className="text-ink-dim text-sm">
                               {lineValue > 0 ? formatGold(lineValue) : "—"}
                             </span>
-                            <form action={deleteUsageLog.bind(null, log.id)}>
-                              <button
-                                type="submit"
-                                className="text-xs text-ink-faint hover:text-red-400 transition-colors"
-                              >
-                                Delete
-                              </button>
-                            </form>
+                            <Link
+                              href={`/usage/${log.id}/edit`}
+                              className="text-xs text-ink-faint hover:text-ink transition-colors"
+                            >
+                              Edit
+                            </Link>
                           </div>
                         </div>
 

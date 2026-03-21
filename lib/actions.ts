@@ -163,6 +163,67 @@ export async function deleteUsageLog(id: string) {
   revalidatePath("/");
 }
 
+export async function updateUsageLog(id: string, raidDate: string, entry: RaidNightEntry) {
+  const date = new Date(raidDate);
+
+  await prisma.$transaction(async (tx) => {
+    // Delete existing attribution lines
+    await tx.usageLine.deleteMany({ where: { usageLogId: id } });
+
+    // Update the log record
+    await tx.usageLog.update({
+      where: { id },
+      data: {
+        raidDate: date,
+        itemType: entry.itemType as ItemType,
+        itemName: entry.itemName,
+        quantityUsed: entry.quantityUsed,
+        notes: entry.notes,
+      },
+    });
+
+    // Re-run FIFO attribution
+    const batches = await tx.craftBatch.findMany({
+      where: {
+        itemType: entry.itemType as ItemType,
+        itemName: entry.itemName ?? undefined,
+        ...(entry.crafterId ? { crafterId: entry.crafterId } : {}),
+      },
+      include: { usageLines: { select: { quantity: true } } },
+      orderBy: { craftedAt: "asc" },
+    });
+
+    const available = batches
+      .map((b) => ({
+        id: b.id,
+        costPerUnit: b.costPerUnit,
+        remaining: b.quantity - b.usageLines.reduce((s: number, l: { quantity: number }) => s + l.quantity, 0),
+      }))
+      .filter((b) => b.remaining > 0);
+
+    let toAssign = entry.quantityUsed;
+    const lines: { batchId: string; quantity: number; costPerUnit: number }[] = [];
+    for (const batch of available) {
+      if (toAssign <= 0) break;
+      const take = Math.min(toAssign, batch.remaining);
+      lines.push({ batchId: batch.id, quantity: take, costPerUnit: batch.costPerUnit });
+      toAssign -= take;
+    }
+
+    if (lines.length > 0) {
+      await tx.usageLine.createMany({
+        data: lines.map((l) => ({ ...l, usageLogId: id })),
+      });
+    }
+  });
+
+  revalidatePath("/usage");
+  revalidatePath("/consumables");
+  revalidatePath("/payments");
+  revalidatePath("/");
+  redirect("/usage");
+}
+
 // ---- Payment actions ----
 
 export async function updateBatchPaidAmount(batchId: string, amount: number) {
