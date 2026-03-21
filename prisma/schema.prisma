@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Crafter {
+  id            String             @id @default(cuid())
+  name          String
+  characterName String
+  createdAt     DateTime           @default(now())
+  entries       ConsumableEntry[]
+  payments      Payment[]
+}
+
+model ConsumableEntry {
+  id          String     @id @default(cuid())
+  crafterId   String
+  crafter     Crafter    @relation(fields: [crafterId], references: [id])
+  itemName    String
+  itemType    ItemType   @default(OTHER)
+  quantity    Int
+  costPerUnit Float
+  totalCost   Float
+  craftedAt   DateTime   @default(now())
+  raidDate    DateTime?
+  status      ItemStatus @default(AVAILABLE)
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  crafterId String
+  crafter   Crafter  @relation(fields: [crafterId], references: [id])
+  amount    Float
+  paidAt    DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+enum ItemType {
+  FLASK
+  POTION
+  FOOD
+  ENCHANT
+  OTHER
+}
+
+enum ItemStatus {
+  AVAILABLE
+  USED
+  WASTED
+}

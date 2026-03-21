@@ -1,65 +1,263 @@
-import Image from "next/image";
+export const dynamic = "force-dynamic";
 
-export default function Home() {
+import Link from "next/link";
+import prisma from "@/lib/prisma";
+import { StatusBadge } from "@/components/StatusBadge";
+import { ItemTypeBadge } from "@/components/ItemTypeBadge";
+import { RaidDayBadge } from "@/components/RaidDayBadge";
+
+async function getDashboardData() {
+  const crafters = await prisma.crafter.findMany({
+    include: {
+      entries: true,
+      payments: true,
+    },
+  });
+
+  const recentEntries = await prisma.consumableEntry.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    include: { crafter: true },
+  });
+
+  const stats = {
+    totalEntries: await prisma.consumableEntry.count(),
+    availableEntries: await prisma.consumableEntry.count({
+      where: { status: "AVAILABLE" },
+    }),
+    usedEntries: await prisma.consumableEntry.count({
+      where: { status: "USED" },
+    }),
+  };
+
+  return { crafters, recentEntries, stats };
+}
+
+function formatGold(amount: number) {
+  return `${amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
+}
+
+export default async function DashboardPage() {
+  const { crafters, recentEntries, stats } = await getDashboardData();
+
+  const crafterSummaries = crafters.map((crafter) => {
+    const totalCrafted = crafter.entries.reduce(
+      (sum, e) => sum + e.totalCost,
+      0
+    );
+    const availableCost = crafter.entries
+      .filter((e) => e.status === "AVAILABLE")
+      .reduce((sum, e) => sum + e.totalCost, 0);
+    const totalPaid = crafter.payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalOwed = Math.max(0, availableCost - totalPaid);
+
+    return {
+      ...crafter,
+      totalCrafted,
+      availableCost,
+      totalPaid,
+      totalOwed,
+    };
+  });
+
+  const totalOwedAll = crafterSummaries.reduce(
+    (sum, c) => sum + c.totalOwed,
+    0
+  );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-yellow-400">Dashboard</h1>
+        <p className="text-zinc-400 mt-1">
+          Guild consumables overview — Raids: Wed, Thu, Mon
+        </p>
+      </div>
+
+      {/* Quick stats */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <p className="text-zinc-400 text-sm">Total Owed</p>
+          <p className="text-2xl font-bold text-yellow-400 mt-1">
+            {formatGold(totalOwedAll)}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <p className="text-zinc-400 text-sm">Total Entries</p>
+          <p className="text-2xl font-bold text-zinc-100 mt-1">
+            {stats.totalEntries}
+          </p>
         </div>
-      </main>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <p className="text-zinc-400 text-sm">Available</p>
+          <p className="text-2xl font-bold text-green-400 mt-1">
+            {stats.availableEntries}
+          </p>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <p className="text-zinc-400 text-sm">Used</p>
+          <p className="text-2xl font-bold text-blue-400 mt-1">
+            {stats.usedEntries}
+          </p>
+        </div>
+      </div>
+
+      {/* Crafter summaries */}
+      <div>
+        <h2 className="text-xl font-semibold text-zinc-100 mb-4">
+          Crafter Balances
+        </h2>
+        {crafterSummaries.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
+            <p className="text-zinc-400">No crafters yet.</p>
+            <Link
+              href="/crafters"
+              className="mt-3 inline-block text-yellow-400 hover:text-yellow-300 text-sm"
+            >
+              Add crafters →
+            </Link>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {crafterSummaries.map((crafter) => (
+              <div
+                key={crafter.id}
+                className="bg-zinc-900 border border-zinc-800 rounded-lg p-5"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-zinc-100">
+                      {crafter.characterName}
+                    </p>
+                    <p className="text-zinc-500 text-sm">{crafter.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p
+                      className={`text-lg font-bold ${
+                        crafter.totalOwed > 0
+                          ? "text-yellow-400"
+                          : "text-green-400"
+                      }`}
+                    >
+                      {formatGold(crafter.totalOwed)}
+                    </p>
+                    <p className="text-zinc-500 text-xs">owed</p>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-zinc-500">Crafted</p>
+                    <p className="text-zinc-300">
+                      {formatGold(crafter.totalCrafted)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-zinc-500">Paid</p>
+                    <p className="text-zinc-300">
+                      {formatGold(crafter.totalPaid)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Recent entries */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-zinc-100">
+            Recent Entries
+          </h2>
+          <Link
+            href="/consumables"
+            className="text-yellow-400 hover:text-yellow-300 text-sm"
+          >
+            View all →
+          </Link>
+        </div>
+        {recentEntries.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
+            <p className="text-zinc-400">No entries yet.</p>
+            <Link
+              href="/consumables/new"
+              className="mt-3 inline-block text-yellow-400 hover:text-yellow-300 text-sm"
+            >
+              Log consumables →
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-zinc-800">
+                  <th className="text-left px-4 py-3 text-zinc-400 font-medium">
+                    Item
+                  </th>
+                  <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden sm:table-cell">
+                    Crafter
+                  </th>
+                  <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden sm:table-cell">
+                    Qty
+                  </th>
+                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">
+                    Cost
+                  </th>
+                  <th className="text-left px-4 py-3 text-zinc-400 font-medium">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentEntries.map((entry) => (
+                  <tr
+                    key={entry.id}
+                    className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-zinc-100">{entry.itemName}</span>
+                        <ItemTypeBadge type={entry.itemType} />
+                        <RaidDayBadge date={entry.raidDate} />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-400 hidden sm:table-cell">
+                      {entry.crafter.characterName}
+                    </td>
+                    <td className="px-4 py-3 text-zinc-400 hidden sm:table-cell">
+                      {entry.quantity}
+                    </td>
+                    <td className="px-4 py-3 text-right text-yellow-400 font-medium">
+                      {formatGold(entry.totalCost)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={entry.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Quick actions */}
+      <div className="flex gap-3 flex-wrap">
+        <Link
+          href="/consumables/new"
+          className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-4 py-2 rounded-lg transition-colors text-sm"
+        >
+          + Log Consumables
+        </Link>
+        <Link
+          href="/payments"
+          className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-semibold px-4 py-2 rounded-lg transition-colors text-sm border border-zinc-700"
+        >
+          + Log Payment
+        </Link>
+      </div>
     </div>
   );
 }
