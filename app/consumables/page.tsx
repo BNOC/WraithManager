@@ -37,7 +37,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
   }
   if (
     params.type &&
-    ["FLASK", "FLASK_CAULDRON", "POTION", "POTION_CAULDRON", "FOOD", "ENCHANT", "OTHER"].includes(params.type)
+    ["FLASK_CAULDRON", "POTION_CAULDRON", "FEAST", "VANTUS_RUNE", "OTHER"].includes(params.type)
   ) {
     where.itemType = params.type as ItemType;
   }
@@ -129,12 +129,10 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
         <div className="flex gap-1 flex-wrap">
           {[
             { value: undefined, label: "All Types" },
-            { value: "FLASK", label: "Flask" },
             { value: "FLASK_CAULDRON", label: "Flask Cauldron" },
-            { value: "POTION", label: "Potion" },
             { value: "POTION_CAULDRON", label: "Potion Cauldron" },
-            { value: "FOOD", label: "Food" },
-            { value: "ENCHANT", label: "Enchant" },
+            { value: "FEAST", label: "Feast" },
+            { value: "VANTUS_RUNE", label: "Vantus Rune" },
             { value: "OTHER", label: "Other" },
           ].map((opt) => (
             <Link

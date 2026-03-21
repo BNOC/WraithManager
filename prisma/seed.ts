@@ -59,24 +59,14 @@ async function main() {
   // Consumable entries for crafter1 (BNOC)
   await createEntry({
     crafterId: crafter1.id,
-    itemName: "Flask of Tempered Swiftness",
-    itemType: "FLASK",
-    quantity: 40,
-    costPerUnit: 250,
+    itemName: "Flask Cauldron",
+    itemType: "FLASK_CAULDRON",
+    quantity: 2,
+    costPerUnit: 5000,
     totalCost: 10000,
     raidDate: wednesdayRaid,
     status: "USED",
-    notes: "Full raid stack for prog night",
-  });
-  await createEntry({
-    crafterId: crafter1.id,
-    itemName: "Flask of Tempered Swiftness",
-    itemType: "FLASK",
-    quantity: 40,
-    costPerUnit: 250,
-    totalCost: 10000,
-    raidDate: thursdayRaid,
-    status: "AVAILABLE",
+    notes: "Wed raid",
   });
   await createEntry({
     crafterId: crafter1.id,
@@ -87,62 +77,41 @@ async function main() {
     totalCost: 10000,
     raidDate: thursdayRaid,
     status: "AVAILABLE",
-    notes: "Two cauldrons for Thursday",
   });
 
   // Consumable entries for crafter2 (Jon)
   await createEntry({
     crafterId: crafter2.id,
-    itemName: "Feast of the Midnight Masquerade",
-    itemType: "FOOD",
-    quantity: 5,
-    costPerUnit: 1500,
-    totalCost: 7500,
+    itemName: "Primary Stat",
+    itemType: "FEAST",
+    quantity: 3,
+    costPerUnit: 2000,
+    totalCost: 6000,
     raidDate: wednesdayRaid,
     status: "USED",
-    notes: "Wed + Thu covered",
+    notes: "Wed + Thu",
   });
   await createEntry({
     crafterId: crafter2.id,
-    itemName: "Feast of the Midnight Masquerade",
-    itemType: "FOOD",
-    quantity: 3,
-    costPerUnit: 1500,
-    totalCost: 4500,
+    itemName: "Secondary Stat",
+    itemType: "FEAST",
+    quantity: 2,
+    costPerUnit: 1800,
+    totalCost: 3600,
     raidDate: mondayRaid,
-    status: "AVAILABLE",
-  });
-  await createEntry({
-    crafterId: crafter2.id,
-    itemName: "Crystallized Augment Rune",
-    itemType: "OTHER",
-    quantity: 80,
-    costPerUnit: 80,
-    totalCost: 6400,
-    raidDate: thursdayRaid,
     status: "AVAILABLE",
   });
 
   // Consumable entries for crafter3 (Glenn)
   await createEntry({
     crafterId: crafter3.id,
-    itemName: "Algari Mana Potion",
-    itemType: "POTION",
-    quantity: 40,
-    costPerUnit: 60,
-    totalCost: 2400,
+    itemName: "Vantus Rune",
+    itemType: "VANTUS_RUNE",
+    quantity: 20,
+    costPerUnit: 150,
+    totalCost: 3000,
     raidDate: wednesdayRaid,
     status: "USED",
-  });
-  await createEntry({
-    crafterId: crafter3.id,
-    itemName: "Tempered Spellthread",
-    itemType: "ENCHANT",
-    quantity: 3,
-    costPerUnit: 800,
-    totalCost: 2400,
-    status: "AVAILABLE",
-    notes: "For new recruits",
   });
   await createEntry({
     crafterId: crafter3.id,

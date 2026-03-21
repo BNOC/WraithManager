@@ -58,12 +58,10 @@ model Payment {
 }
 
 enum ItemType {
-  FLASK
   FLASK_CAULDRON
-  POTION
   POTION_CAULDRON
-  FOOD
-  ENCHANT
+  FEAST
+  VANTUS_RUNE
   OTHER
 }
 
