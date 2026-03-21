@@ -202,15 +202,18 @@ export default async function DashboardPage() {
             <div className="space-y-2">
               {crafterSummaries.map((c) => (
                 <div key={c.id} className="bg-surface border border-rim rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg shadow-black/20">
-                  <div>
-                    <p className="font-semibold text-ink">{c.characterName}</p>
-                    <p className="text-ink-faint text-xs mt-0.5">Paid: {formatGold(c.totalPaid)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-lg font-bold ${c.outstanding > 0 ? "text-primary" : "text-emerald-400"}`}>
-                      {formatGold(c.outstanding)}
-                    </p>
-                    <p className="text-ink-faint text-xs">outstanding</p>
+                  <p className="font-semibold text-ink">{c.characterName}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-green-600">{formatGold(c.totalPaid)}</p>
+                      <p className="text-ink-faint text-xs">paid</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-lg font-bold ${c.outstanding > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                        {formatGold(c.outstanding)}
+                      </p>
+                      <p className="text-ink-faint text-xs">outstanding</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -237,13 +240,17 @@ export default async function DashboardPage() {
                 const value = log.lines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
                 return (
                   <div key={log.id} className="bg-surface border border-rim rounded-2xl px-4 py-3 flex items-center justify-between gap-2 shadow-lg shadow-black/20">
-                    <div className="flex items-center gap-2 flex-wrap min-w-0">
-                      <RaidDayBadge date={log.raidDate} />
-                      <span className="text-ink-dim text-xs">{formatDate(log.raidDate)}</span>
-                      <ItemTypeIcon type={log.itemType} size={16} />
-                      <ItemTypeBadge type={log.itemType} />
+                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <RaidDayBadge date={log.raidDate} />
+                        <span className="text-ink-faint text-xs">{formatDate(log.raidDate)}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <ItemTypeIcon type={log.itemType} size={16} />
+                        <ItemTypeBadge type={log.itemType} small />
+                      </div>
                       {log.itemName && <span className="text-ink-dim text-xs truncate">{log.itemName}</span>}
-                      <span className="text-ink-faint text-xs">×{log.quantityUsed}</span>
+                      <span className="text-ink font-bold text-sm shrink-0">×{log.quantityUsed}</span>
                     </div>
                     <span className="text-primary font-medium text-sm shrink-0">{value > 0 ? formatGold(value) : "—"}</span>
                   </div>
