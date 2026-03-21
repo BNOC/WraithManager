@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createCraftBatch } from "@/lib/actions";
+import { DateInput } from "@/components/DateInput";
 
 interface Crafter {
   id: string;
@@ -155,10 +156,9 @@ export function ConsumableForm({
         <label htmlFor="craftedAt" className={labelClass}>
           Date Crafted <span className="text-red-400">*</span>
         </label>
-        <input
+        <DateInput
           id="craftedAt"
           name="craftedAt"
-          type="date"
           required
           defaultValue={today}
           className={`${inputClass} cursor-pointer`}

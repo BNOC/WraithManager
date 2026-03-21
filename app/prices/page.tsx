@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { createPriceConfig } from "@/lib/actions";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ItemTypeIcon";
+import { DateInput } from "@/components/DateInput";
 import type { ItemType } from "@prisma/client";
 
 const ALL_TYPES: { value: ItemType; label: string }[] = [
@@ -196,10 +197,9 @@ export default async function PricesPage({ searchParams }: PageProps) {
               <label htmlFor="effectiveDate" className={labelClass}>
                 Effective From <span className="text-red-400">*</span>
               </label>
-              <input
+              <DateInput
                 id="effectiveDate"
                 name="effectiveDate"
-                type="date"
                 required
                 defaultValue={today}
                 className={`${inputClass} cursor-pointer`}

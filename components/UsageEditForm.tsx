@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { updateUsageLog, deleteUsageLog, type RaidNightEntry } from "@/lib/actions";
+import { DateInput } from "@/components/DateInput";
 
 interface Crafter {
   id: string;
@@ -125,8 +126,7 @@ export function UsageEditForm({
         <label className="block text-sm font-medium text-ink-dim mb-1.5">
           Raid Date <span className="text-red-400">*</span>
         </label>
-        <input
-          type="date"
+        <DateInput
           value={raidDate}
           onChange={(e) => setRaidDate(e.target.value)}
           required

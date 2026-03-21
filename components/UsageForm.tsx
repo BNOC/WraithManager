@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { createNotePreset } from "@/lib/actions";
+import { DateInput } from "@/components/DateInput";
 
 interface Crafter {
   id: string;
@@ -94,10 +95,9 @@ export function UsageForm({
         <label htmlFor="raidDate" className={labelClass}>
           Raid Date <span className="text-red-400">*</span>
         </label>
-        <input
+        <DateInput
           id="raidDate"
           name="raidDate"
-          type="date"
           required
           defaultValue={today}
           className={`${inputClass} cursor-pointer`}
