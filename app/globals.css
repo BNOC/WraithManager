@@ -20,7 +20,7 @@
   --color-ink: var(--theme-ink);
   --color-ink-dim: var(--theme-ink-dim);
   --color-ink-faint: var(--theme-ink-faint);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
 }
 
 body {

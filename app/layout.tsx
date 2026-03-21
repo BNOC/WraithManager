@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { SideNav } from "@/components/SideNav";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemePicker } from "@/components/ThemePicker";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "WraithManager — Guild Consumables Tracker",
+  title: "WraithManager - Guild Consumables Tracker",
   description: "Track consumables, payments, and crafters for your WoW raid guild",
 };
 
@@ -21,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full`}>
+    <html lang="en" className={`${poppins.variable} h-full`}>
       <body className="min-h-full bg-canvas text-ink antialiased">
         <ThemeProvider>
           <div className="flex min-h-screen">

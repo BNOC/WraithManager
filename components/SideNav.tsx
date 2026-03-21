@@ -81,7 +81,7 @@ export function SideNav() {
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-rim">
-          <p className="text-ink-faint text-xs">@BNOC</p>
+          <p className="text-xs font-bold text-center" style={{ color: "#33937f" }}>@BNOC</p>
         </div>
       </nav>
 
@@ -133,30 +133,37 @@ function DashIcon() {
 }
 
 function CraftsIcon() {
+  // Flask / potion bottle
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M3 2h2v3H3zM3 11h2v3H3zM11 2h2v3h-2zM11 11h2v3h-2z" />
-      <path d="M2 4.5h12v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7z" opacity=".4" />
-      <path d="M5 7h6M5 9.5h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M6 2h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M7 2v3.2L4.2 10A3 3 0 0 0 6.9 14h2.2a3 3 0 0 0 2.7-4L9 5.2V2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4.4 10.5h7.2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity=".4" />
+      <circle cx="7" cy="12" r="0.8" fill="currentColor" opacity=".5" />
     </svg>
   );
 }
 
 function UsageIcon() {
+  // Calendar with a checkmark day
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <rect x="2" y="2" width="12" height="12" rx="2" opacity=".2" />
-      <path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="2" y="3.5" width="12" height="10" rx="1.8" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M2 7h12" stroke="currentColor" strokeWidth="1.1" opacity=".5" />
+      <path d="M5.5 2v3M10.5 2v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M5.5 10l1.5 1.5 3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function PaymentsIcon() {
+  // Wallet with a card slot
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <circle cx="8" cy="8" r="6.5" opacity=".2" />
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.2" fill="none" />
-      <text x="8" y="11.5" textAnchor="middle" fontSize="7" fontWeight="bold">g</text>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1.5" y="4.5" width="13" height="9" rx="1.8" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M1.5 7.5h13" stroke="currentColor" strokeWidth="1.1" opacity=".5" />
+      <path d="M4 4.5V3.5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1" stroke="currentColor" strokeWidth="1.1" opacity=".5" />
+      <rect x="9.5" y="9.5" width="3" height="2" rx="0.7" fill="currentColor" opacity=".6" />
     </svg>
   );
 }
