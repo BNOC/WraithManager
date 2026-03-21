@@ -21,18 +21,13 @@ export function BatchPayButton({
   const [inputVal, setInputVal] = useState(paidAmount.toString());
 
   if (owedAmount === 0) {
-    return <span className="text-zinc-600 text-xs">Nothing owed</span>;
+    return <span className="text-ink-faint text-xs">Nothing owed</span>;
   }
 
   const isFullyPaid = paidAmount >= owedAmount;
 
   function markPaid() {
     startTransition(() => updateBatchPaidAmount(batchId, owedAmount));
-  }
-
-  function markUnpaid() {
-    startTransition(() => updateBatchPaidAmount(batchId, 0));
-    setShowInput(false);
   }
 
   function submitPartial() {
@@ -44,18 +39,7 @@ export function BatchPayButton({
   }
 
   if (isFullyPaid) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-green-400 text-xs font-medium">✓ Paid {formatGold(paidAmount)}</span>
-        <button
-          onClick={markUnpaid}
-          disabled={isPending}
-          className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors disabled:opacity-50"
-        >
-          Undo
-        </button>
-      </div>
-    );
+    return <span className="text-green-400 text-xs font-medium">✓ Paid {formatGold(paidAmount)}</span>;
   }
 
   if (showInput) {
@@ -79,7 +63,7 @@ export function BatchPayButton({
         </button>
         <button
           onClick={() => setShowInput(false)}
-          className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+          className="text-xs text-ink-faint hover:text-ink-dim transition-colors"
         >
           Cancel
         </button>
@@ -103,7 +87,7 @@ export function BatchPayButton({
       </button>
       <button
         onClick={() => { setInputVal(paidAmount.toString()); setShowInput(true); }}
-        className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+        className="text-xs text-ink-dim hover:text-ink transition-colors"
       >
         Part-paid
       </button>

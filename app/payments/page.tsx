@@ -34,11 +34,24 @@ export default async function PaymentsPage() {
     return { ...crafter, batchRows, totalOwed, totalPaid, balance };
   });
 
+  const grandTotalPaid = crafterStats.reduce((s, c) => s + c.totalPaid, 0);
+
+  function formatGoldAbbr(n: number) {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}m`;
+    if (n >= 1_000) return `${(n / 1_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}k`;
+    return `${Math.round(n)}g`;
+  }
+
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Payments Log</p>
-        <h1 className="text-3xl font-bold text-ink">Payments</h1>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Payments Log</p>
+          <h1 className="text-3xl font-bold text-ink">Payments</h1>
+        </div>
+        <p className="text-ink-dim text-sm shrink-0 pb-1">
+          Paid: <span className="text-green-400 font-semibold">{formatGoldAbbr(grandTotalPaid)}</span>
+        </p>
       </div>
 
       {/* Per-crafter sections */}

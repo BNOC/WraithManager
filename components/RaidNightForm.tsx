@@ -141,9 +141,8 @@ export function RaidNightForm({
 
   const canSubmit = entries.length > 0 && entries.every((e) => {
     const autoName = AUTO_NAMES[e.itemType];
-    if (autoName) return e.quantityUsed >= 1;
-    if (e.itemType === "FEAST") return !!e.itemName && e.quantityUsed >= 1;
-    return !!e.itemName && e.quantityUsed >= 1;
+    const hasName = autoName ? true : !!e.itemName;
+    return hasName && e.quantityUsed >= 1 && !!e.crafterId && !!e.notes.trim();
   });
 
   return (
@@ -446,17 +445,17 @@ function EntryRow({
           />
         </div>
 
-        {/* Crafter filter */}
+        {/* Crafter */}
         <div>
           <label className="block text-xs font-medium text-ink-dim mb-1">
-            From Crafter <span className="text-ink-faint font-normal">(optional)</span>
+            Crafter <span className="text-red-400">*</span>
           </label>
           <select
             value={entry.crafterId}
             onChange={(e) => onUpdate({ crafterId: e.target.value })}
             className={selectClass}
           >
-            <option value="">Any (FIFO)</option>
+            <option value="">Select crafter…</option>
             {crafters.map((c) => (
               <option key={c.id} value={c.id}>{c.characterName}</option>
             ))}
@@ -487,7 +486,7 @@ function EntryRow({
 
       {/* Notes */}
       <div>
-        <label className="block text-xs font-medium text-zinc-400 mb-1">Notes</label>
+        <label className="block text-xs font-medium text-ink-dim mb-1">Notes <span className="text-red-400">*</span></label>
         <div className="flex flex-wrap gap-1 mb-1.5">
             {[...DEFAULT_NOTE_PRESETS, ...presets.map((p) => p.label).filter((l) => !DEFAULT_NOTE_PRESETS.includes(l))].map((label) => (
               <button

@@ -31,10 +31,8 @@ export default async function NewUsagePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-yellow-400">Log Raid Night</h1>
-        <p className="text-zinc-400 mt-1">
-          Log all consumables used on a single raid night — FIFO pulls from the oldest batches first
-        </p>
+        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Usage Log</p>
+        <h1 className="text-3xl font-bold text-ink">Log Raid Night</h1>
       </div>
       <RaidNightForm
         crafters={crafters}

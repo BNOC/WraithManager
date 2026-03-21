@@ -1,42 +1,44 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useTheme, WOW_COLORS, BG_THEMES } from "@/components/ThemeProvider";
 
-export function ThemePicker() {
+export function MobileThemeButton() {
   const { primary, setPrimary, bgTheme, setBgTheme } = useTheme();
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
 
   return (
-    <div ref={ref} className="hidden md:block fixed top-4 right-4 z-50">
+    <>
+      {/* Palette trigger button */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
         title="Change theme"
-        className="w-8 h-8 rounded-full border-2 border-rim shadow-lg shadow-black/40 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/20"
+        className="w-7 h-7 rounded-full border-2 border-rim/60 shadow-sm shrink-0 focus:outline-none"
         style={{ backgroundColor: primary }}
         suppressHydrationWarning
       />
 
+      {/* Backdrop */}
       {open && (
-        <div className="absolute top-10 right-0 bg-surface border border-rim rounded-2xl shadow-2xl shadow-black/60 p-4 w-72 space-y-5">
+        <div
+          className="fixed inset-0 z-40 bg-black/50"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-          {/* Primary colour */}
+      {/* Bottom sheet */}
+      <div
+        className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-out ${open ? "translate-y-0" : "translate-y-full"}`}
+      >
+        <div className="bg-surface border-t border-rim rounded-t-2xl shadow-2xl shadow-black/60 p-5 space-y-5">
+          {/* Handle */}
+          <div className="flex justify-center -mt-1 mb-1">
+            <div className="w-8 h-1 rounded-full bg-rim" />
+          </div>
+
+          {/* Class colour */}
           <div>
-            <p className="text-ink-dim text-xs font-semibold uppercase tracking-wider mb-3">
-              Class Colour
-            </p>
+            <p className="text-ink-dim text-xs font-semibold uppercase tracking-wider mb-3">Class Colour</p>
             <div className="grid grid-cols-4 gap-2.5">
               {WOW_COLORS.map(({ name, color }) => {
                 const isActive = primary.toLowerCase() === color.toLowerCase();
@@ -48,7 +50,7 @@ export function ThemePicker() {
                     className="group flex flex-col items-center gap-1"
                   >
                     <span
-                      className="w-9 h-9 rounded-full block transition-transform group-hover:scale-110 shadow-md"
+                      className="w-10 h-10 rounded-full block transition-transform group-hover:scale-110 shadow-md"
                       style={{
                         backgroundColor: color,
                         boxShadow: isActive ? `0 0 0 3px #fff3, 0 0 0 5px ${color}66` : undefined,
@@ -65,11 +67,9 @@ export function ThemePicker() {
 
           <div className="border-t border-rim" />
 
-          {/* Background theme */}
+          {/* Background */}
           <div>
-            <p className="text-ink-dim text-xs font-semibold uppercase tracking-wider mb-3">
-              Background
-            </p>
+            <p className="text-ink-dim text-xs font-semibold uppercase tracking-wider mb-3">Background</p>
             <div className="grid grid-cols-3 gap-2">
               {BG_THEMES.map((theme) => {
                 const isActive = bgTheme.name === theme.name;
@@ -80,7 +80,6 @@ export function ThemePicker() {
                     onClick={() => { setBgTheme(theme); setOpen(false); }}
                     className="group flex flex-col items-center gap-1.5"
                   >
-                    {/* Swatch: outer = canvas, inner = surface, tiny = surface-hi */}
                     <span
                       className="w-full h-10 rounded-xl block relative overflow-hidden transition-transform group-hover:scale-105"
                       style={{
@@ -98,17 +97,17 @@ export function ThemePicker() {
                         style={{ backgroundColor: theme.surfaceHi }}
                       />
                     </span>
-                    <span className="text-ink-faint text-[10px] leading-tight">
-                      {theme.name}
-                    </span>
+                    <span className="text-ink-faint text-[10px] leading-tight">{theme.name}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
+          {/* Safe area bottom spacer */}
+          <div className="h-2" />
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

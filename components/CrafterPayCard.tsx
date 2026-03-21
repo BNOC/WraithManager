@@ -86,7 +86,7 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
             {balance > 0 ? `${formatGold(balance)} outstanding` : totalOwed > 0 ? "✓ Settled" : "Nothing owed"}
           </span>
           <span className={`sm:hidden text-sm font-semibold ${balance > 0 ? "text-red-400" : "text-green-400"}`}>
-            {balance > 0 ? formatGold(balance) : "✓"}
+            {balance > 0 ? formatGold(balance) : "Settled ✓"}
           </span>
         </div>
       </button>
@@ -130,7 +130,7 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
                           <ItemTypeIcon type={batch.itemType as Parameters<typeof ItemTypeIcon>[0]["type"]} size={18} />
-                          <ItemTypeBadge type={batch.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                          <ItemTypeBadge type={batch.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} abbr />
                           <span className="text-ink text-xs">{batch.itemName}</span>
                         </div>
                       </td>

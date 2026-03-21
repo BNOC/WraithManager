@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
@@ -10,12 +9,22 @@ function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
 }
 
+function formatGoldAbbr(n: number) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}m`;
+  if (n >= 1_000) return `${(n / 1_000).toLocaleString("en-US", { maximumFractionDigits: 1 })}k`;
+  return `${Math.round(n)}g`;
+}
+
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+}
+
+function formatDateShort(d: string) {
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export interface UsageLine {
@@ -82,59 +91,49 @@ export function UsageNightCard({ dateKey, raidDate, nightValue, logs }: UsageNig
               </div>
 
               <div className="flex-1 min-w-0">
-              {/* Item header */}
-              <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <ItemTypeBadge type={log.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
-                  {log.itemName && (
-                    <span className="text-ink text-sm font-medium">{log.itemName}</span>
-                  )}
-                  <span className="text-ink-dim text-sm">×{log.quantityUsed}</span>
-                  {log.notes && (
-                    <span className="bg-surface-hi border border-rim text-ink-dim text-xs px-1.5 py-0.5 rounded-lg">
-                      {log.notes}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-ink-dim text-sm">
-                    {log.lineValue > 0 ? formatGold(log.lineValue) : "—"}
+                {/* Item header — value + edit pinned right, never wraps */}
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                    <ItemTypeBadge
+                      type={log.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]}
+                      small
+                      label={log.itemType === "FEAST" && log.itemName ? `Feast - ${log.itemName}` : undefined}
+                    />
+                    <span className="text-ink font-bold text-sm">×{log.quantityUsed}</span>
+                    {log.notes && (
+                      <span className="bg-surface-hi border border-rim text-ink-dim text-xs px-1.5 py-0.5 rounded-lg">
+                        {log.notes}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-ink-dim text-sm font-medium shrink-0">
+                    {log.lineValue > 0 ? formatGoldAbbr(log.lineValue) : "—"}
                   </span>
-                  <Link
-                    href={`/usage/${log.id}/edit`}
-                    className="text-xs text-ink-faint hover:text-ink transition-colors"
-                  >
-                    Edit
-                  </Link>
+                </div>
+
+                {/* FIFO attribution lines */}
+                <div className="space-y-0.5 pl-1">
+                  {log.lines.length === 0 ? (
+                    <p className="text-ink-faint text-xs">No batch stock available at time of logging.</p>
+                  ) : (
+                    log.lines.map((line) => (
+                      <div key={line.id} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-ink-dim">
+                          · {line.quantity} from{" "}
+                          <span className="text-ink font-medium">{line.crafterName}</span>{" "}
+                          <span className="text-ink-faint">({formatDateShort(line.batchCraftedAt)})</span>
+                        </span>
+                        <span className="text-ink-faint shrink-0">{formatGoldAbbr(line.costPerUnit)}/unit</span>
+                      </div>
+                    ))
+                  )}
+                  {log.unattributed > 0 && (
+                    <p className="text-amber-400 text-xs">
+                      ⚠ {log.unattributed} unit{log.unattributed !== 1 ? "s" : ""} unattributed
+                    </p>
+                  )}
                 </div>
               </div>
-
-              {/* FIFO attribution lines */}
-              <div className="space-y-0.5 pl-2">
-                {log.lines.length === 0 ? (
-                  <p className="text-ink-faint text-xs">No batch stock was available at time of logging.</p>
-                ) : (
-                  log.lines.map((line) => (
-                    <div key={line.id} className="flex items-center justify-between text-xs">
-                      <span className="text-ink-dim">
-                        ·{" "}
-                        <span className="text-ink-dim">{line.quantity}</span> from{" "}
-                        <span className="text-ink font-medium">{line.crafterName}</span>{" "}
-                        <span className="text-ink-faint">(crafted {formatDate(line.batchCraftedAt)})</span>
-                      </span>
-                      <span className="text-ink-faint">
-                        {formatGold(line.costPerUnit)}/unit = {formatGold(line.quantity * line.costPerUnit)}
-                      </span>
-                    </div>
-                  ))
-                )}
-                {log.unattributed > 0 && (
-                  <p className="text-amber-400 text-xs">
-                    ⚠ {log.unattributed} unit{log.unattributed !== 1 ? "s" : ""} unattributed — no matching batch stock
-                  </p>
-                )}
-              </div>
-              </div>{/* flex-1 */}
             </div>
           ))}
         </div>

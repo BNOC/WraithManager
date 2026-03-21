@@ -29,10 +29,10 @@ const AUTO_NAMES: Partial<Record<string, string>> = {
 };
 
 const selectClass =
-  "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
+  "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
 const inputClass =
-  "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
-const labelClass = "block text-sm font-medium text-zinc-300 mb-1.5";
+  "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
+const labelClass = "block text-sm font-medium text-ink-dim mb-1.5";
 
 export function UsageForm({
   crafters,
@@ -168,7 +168,7 @@ export function UsageForm({
       <div>
         <label htmlFor="crafterId" className={labelClass}>
           From Crafter{" "}
-          <span className="text-zinc-500 font-normal">(optional — leave blank for any)</span>
+          <span className="text-ink-faint font-normal">(optional — leave blank for any)</span>
         </label>
         <select id="crafterId" name="crafterId" className={selectClass}>
           <option value="">Any (FIFO across all crafters)</option>
@@ -182,15 +182,15 @@ export function UsageForm({
 
       {/* Available stock info */}
       {(autoName || itemName) && (
-        <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3 text-sm">
+        <div className="bg-surface-hi border border-rim/50 rounded-xl px-4 py-3 text-sm">
           {totalAvailable > 0 ? (
             <div className="space-y-1">
-              <p className="text-zinc-300">
-                <span className="text-yellow-400 font-medium">{totalAvailable}</span>{" "}
+              <p className="text-ink-dim">
+                <span className="text-primary font-medium">{totalAvailable}</span>{" "}
                 available across {available.length} batch{available.length !== 1 ? "es" : ""} (FIFO order):
               </p>
               {available.map((b, i) => (
-                <p key={i} className="text-zinc-500 text-xs ml-2">
+                <p key={i} className="text-ink-faint text-xs ml-2">
                   · {b.remaining} from {b.crafter} (crafted{" "}
                   {new Date(b.craftedAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -201,7 +201,7 @@ export function UsageForm({
               ))}
             </div>
           ) : (
-            <p className="text-zinc-500">No stock available for this item.</p>
+            <p className="text-ink-faint">No stock available for this item.</p>
           )}
         </div>
       )}
@@ -225,8 +225,8 @@ export function UsageForm({
       {/* Notes with presets */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label htmlFor="notes" className="text-sm font-medium text-zinc-300">
-            Notes <span className="text-zinc-500 font-normal">(optional)</span>
+          <label htmlFor="notes" className="text-sm font-medium text-ink-dim">
+            Notes <span className="text-ink-faint font-normal">(optional)</span>
           </label>
         </div>
 
@@ -238,7 +238,7 @@ export function UsageForm({
                 key={p.id}
                 type="button"
                 onClick={() => applyPreset(p.label)}
-                className="px-2 py-0.5 rounded text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 transition-colors"
+                className="px-2 py-0.5 rounded text-xs bg-surface-hi border border-rim text-ink-faint hover:text-ink hover:border-ink-faint transition-colors"
               >
                 {p.label}
               </button>
@@ -257,20 +257,20 @@ export function UsageForm({
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPreset())}
                 placeholder="Preset label…"
                 autoFocus
-                className="flex-1 bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500"
+                className="flex-1 bg-surface-hi border border-rim rounded px-2 py-1 text-xs text-ink placeholder-ink-faint focus:outline-none focus:border-primary"
               />
               <button
                 type="button"
                 onClick={handleAddPreset}
                 disabled={isAddingPreset || !newPresetLabel.trim()}
-                className="text-xs bg-yellow-600 hover:bg-yellow-500 text-zinc-900 font-medium px-2 py-1 rounded transition-colors disabled:opacity-50"
+                className="text-xs bg-primary hover:opacity-90 text-white font-medium px-2 py-1 rounded transition-opacity disabled:opacity-50"
               >
                 {isAddingPreset ? "…" : "Add"}
               </button>
               <button
                 type="button"
                 onClick={() => { setShowAddPreset(false); setNewPresetLabel(""); }}
-                className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                className="text-xs text-ink-faint hover:text-ink-dim transition-colors"
               >
                 Cancel
               </button>
@@ -300,13 +300,13 @@ export function UsageForm({
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-6 py-2 rounded-lg transition-colors"
+          className="bg-primary hover:opacity-90 text-white font-semibold px-6 py-2.5 rounded-xl transition-opacity"
         >
           Log Usage
         </button>
         <Link
           href="/usage"
-          className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-medium px-6 py-2 rounded-lg transition-colors border border-zinc-700"
+          className="bg-surface-hi hover:border-primary/40 text-ink font-medium px-6 py-2.5 rounded-xl transition-colors border border-rim"
         >
           Cancel
         </Link>

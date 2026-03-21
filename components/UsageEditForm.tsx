@@ -212,14 +212,14 @@ export function UsageEditForm({
           {/* Crafter */}
           <div>
             <label className="block text-xs font-medium text-ink-dim mb-1">
-              From Crafter <span className="text-ink-faint font-normal">(optional — re-runs FIFO)</span>
+              Crafter <span className="text-red-400">*</span>
             </label>
             <select
               value={crafterId}
               onChange={(e) => setCrafterId(e.target.value)}
               className={selectClass}
             >
-              <option value="">Any (FIFO)</option>
+              <option value="">Select crafter…</option>
               {crafters.map((c) => (
                 <option key={c.id} value={c.id}>{c.characterName}</option>
               ))}
