@@ -51,7 +51,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
     const usedValue = b.usageLines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
     const remaining = b.quantity - usedQty;
     const totalValue = b.quantity * b.costPerUnit;
-    const owedAmount = usedValue;
+    const owedAmount = totalValue; // full batch is always owed regardless of usage
     const paymentStatus =
       b.paidAmount >= owedAmount && owedAmount > 0
         ? "paid"
@@ -192,12 +192,13 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     {formatGold(row.costPerUnit)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {row.owedAmount > 0 ? (
-                      <span className="text-yellow-400 font-medium">
-                        {formatGold(row.owedAmount)}
-                      </span>
-                    ) : (
-                      <span className="text-zinc-600">—</span>
+                    <span className="text-yellow-400 font-medium">
+                      {formatGold(row.owedAmount)}
+                    </span>
+                    {row.remaining > 0 && (
+                      <p className="text-zinc-500 text-xs mt-0.5">
+                        {row.remaining} unused
+                      </p>
                     )}
                   </td>
                   <td className="px-4 py-3 hidden lg:table-cell">

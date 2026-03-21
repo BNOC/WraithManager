@@ -161,7 +161,7 @@ export function ConsumableForm({
           type="date"
           required
           defaultValue={today}
-          className={inputClass}
+          className={`${inputClass} cursor-pointer`}
         />
       </div>
 

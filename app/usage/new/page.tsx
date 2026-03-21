@@ -1,10 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import prisma from "@/lib/prisma";
-import { UsageForm } from "@/components/UsageForm";
+import { RaidNightForm } from "@/components/RaidNightForm";
 
 export default async function NewUsagePage() {
-  const [crafters, batches] = await Promise.all([
+  const [crafters, batches, presets] = await Promise.all([
     prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
     prisma.craftBatch.findMany({
       orderBy: { craftedAt: "asc" },
@@ -13,9 +13,9 @@ export default async function NewUsagePage() {
         usageLines: { select: { quantity: true } },
       },
     }),
+    prisma.notePreset.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
 
-  // Compute remaining per batch, filter to those with stock
   const batchSummaries = batches
     .map((b) => ({
       itemType: b.itemType,
@@ -31,12 +31,17 @@ export default async function NewUsagePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-yellow-400">Log Usage</h1>
+        <h1 className="text-3xl font-bold text-yellow-400">Log Raid Night</h1>
         <p className="text-zinc-400 mt-1">
-          Record consumables used on a raid night — FIFO pulls from the oldest batches first
+          Log all consumables used on a single raid night — FIFO pulls from the oldest batches first
         </p>
       </div>
-      <UsageForm crafters={crafters} batches={batchSummaries} today={today} />
+      <RaidNightForm
+        crafters={crafters}
+        batches={batchSummaries}
+        today={today}
+        presets={presets}
+      />
     </div>
   );
 }

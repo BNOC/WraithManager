@@ -68,6 +68,12 @@ model PriceConfig {
   createdAt     DateTime @default(now())
 }
 
+model NotePreset {
+  id        String   @id @default(cuid())
+  label     String
+  createdAt DateTime @default(now())
+}
+
 enum ItemType {
   FLASK_CAULDRON
   POTION_CAULDRON

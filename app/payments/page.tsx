@@ -33,8 +33,10 @@ export default async function PaymentsPage() {
   const crafterStats = crafters.map((crafter) => {
     const batchRows = crafter.batches.map((b) => {
       const usedQty = b.usageLines.reduce((s, l) => s + l.quantity, 0);
-      const owedAmount = b.usageLines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
-      return { ...b, usedQty, owedAmount };
+      const unusedQty = b.quantity - usedQty;
+      const usedValue = b.usageLines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
+      const owedAmount = b.quantity * b.costPerUnit; // full batch always owed
+      return { ...b, usedQty, unusedQty, usedValue, owedAmount };
     });
 
     const totalOwed = batchRows.reduce((s, b) => s + b.owedAmount, 0);
@@ -145,12 +147,13 @@ export default async function PaymentsPage() {
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-right">
-                      {batch.owedAmount > 0 ? (
-                        <span className="text-yellow-400 font-medium text-xs">
-                          {formatGold(batch.owedAmount)}
-                        </span>
-                      ) : (
-                        <span className="text-zinc-600 text-xs">—</span>
+                      <span className="text-yellow-400 font-medium text-xs">
+                        {formatGold(batch.owedAmount)}
+                      </span>
+                      {batch.unusedQty > 0 && (
+                        <p className="text-zinc-600 text-xs mt-0.5">
+                          {batch.unusedQty} unused
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-2.5">

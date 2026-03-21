@@ -68,22 +68,22 @@ export async function createCraftBatch(formData: FormData) {
 
 // ---- Usage log actions ----
 
-export async function createUsageLog(formData: FormData) {
-  const raidDateStr = formData.get("raidDate") as string;
-  const itemType = formData.get("itemType") as ItemType;
-  const itemName = (formData.get("itemName") as string) || null;
-  const quantityUsed = parseInt(formData.get("quantityUsed") as string, 10);
-  const crafterId = (formData.get("crafterId") as string) || null;
-  const notes = formData.get("notes") as string;
-
-  const raidDate = new Date(raidDateStr);
-
-  // FIFO: find craft batches with remaining stock, oldest first
-  const batches = await prisma.craftBatch.findMany({
+async function fifoAttributeUsage(
+  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+  opts: {
+    raidDate: Date;
+    itemType: ItemType;
+    itemName: string | null;
+    quantityUsed: number;
+    crafterId: string | null;
+    notes: string | null;
+  }
+) {
+  const batches = await tx.craftBatch.findMany({
     where: {
-      itemType,
-      itemName: itemName ?? undefined,
-      ...(crafterId ? { crafterId } : {}),
+      itemType: opts.itemType,
+      itemName: opts.itemName ?? undefined,
+      ...(opts.crafterId ? { crafterId: opts.crafterId } : {}),
     },
     include: { usageLines: { select: { quantity: true } } },
     orderBy: { craftedAt: "asc" },
@@ -93,14 +93,12 @@ export async function createUsageLog(formData: FormData) {
     .map((b) => ({
       id: b.id,
       costPerUnit: b.costPerUnit,
-      remaining: b.quantity - b.usageLines.reduce((s, l) => s + l.quantity, 0),
+      remaining: b.quantity - b.usageLines.reduce((s: number, l: { quantity: number }) => s + l.quantity, 0),
     }))
     .filter((b) => b.remaining > 0);
 
-  // Build attribution lines
-  let toAssign = quantityUsed;
+  let toAssign = opts.quantityUsed;
   const lines: { batchId: string; quantity: number; costPerUnit: number }[] = [];
-
   for (const batch of available) {
     if (toAssign <= 0) break;
     const take = Math.min(toAssign, batch.remaining);
@@ -108,20 +106,44 @@ export async function createUsageLog(formData: FormData) {
     toAssign -= take;
   }
 
-  await prisma.$transaction(async (tx) => {
-    const log = await tx.usageLog.create({
-      data: {
-        raidDate,
-        itemType,
-        itemName,
-        quantityUsed,
-        notes: notes || null,
-      },
-    });
+  const log = await tx.usageLog.create({
+    data: {
+      raidDate: opts.raidDate,
+      itemType: opts.itemType,
+      itemName: opts.itemName,
+      quantityUsed: opts.quantityUsed,
+      notes: opts.notes,
+    },
+  });
 
-    if (lines.length > 0) {
-      await tx.usageLine.createMany({
-        data: lines.map((l) => ({ ...l, usageLogId: log.id })),
+  if (lines.length > 0) {
+    await tx.usageLine.createMany({
+      data: lines.map((l) => ({ ...l, usageLogId: log.id })),
+    });
+  }
+}
+
+export type RaidNightEntry = {
+  itemType: string;
+  itemName: string | null;
+  quantityUsed: number;
+  crafterId: string | null;
+  notes: string | null;
+};
+
+export async function createRaidNightUsage(raidDate: string, entries: RaidNightEntry[]) {
+  if (!entries.length) return;
+  const date = new Date(raidDate);
+
+  await prisma.$transaction(async (tx) => {
+    for (const entry of entries) {
+      await fifoAttributeUsage(tx, {
+        raidDate: date,
+        itemType: entry.itemType as ItemType,
+        itemName: entry.itemName,
+        quantityUsed: entry.quantityUsed,
+        crafterId: entry.crafterId,
+        notes: entry.notes,
       });
     }
   });
@@ -152,6 +174,15 @@ export async function updateBatchPaidAmount(batchId: string, amount: number) {
   revalidatePath("/payments");
   revalidatePath("/consumables");
   revalidatePath("/");
+}
+
+// ---- Note preset actions ----
+
+export async function createNotePreset(label: string) {
+  const trimmed = label.trim();
+  if (!trimmed) return;
+  await prisma.notePreset.create({ data: { label: trimmed } });
+  revalidatePath("/usage/new");
 }
 
 // ---- Price config actions ----

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { createUsageLog } from "@/lib/actions";
+import { createNotePreset } from "@/lib/actions";
 
 interface Crafter {
   id: string;
@@ -15,6 +15,11 @@ interface BatchSummary {
   remaining: number;
   craftedAt: Date;
   crafter: string;
+}
+
+interface NotePreset {
+  id: string;
+  label: string;
 }
 
 const AUTO_NAMES: Partial<Record<string, string>> = {
@@ -33,18 +38,24 @@ export function UsageForm({
   crafters,
   batches,
   today,
+  presets,
 }: {
   crafters: Crafter[];
   batches: BatchSummary[];
   today: string;
+  presets: NotePreset[];
 }) {
   const [itemType, setItemType] = useState("FLASK_CAULDRON");
   const [itemName, setItemName] = useState<string>("");
+  const [notes, setNotes] = useState("");
+  const [localPresets, setLocalPresets] = useState<NotePreset[]>(presets);
+  const [newPresetLabel, setNewPresetLabel] = useState("");
+  const [showAddPreset, setShowAddPreset] = useState(false);
+  const [isAddingPreset, startAddPreset] = useTransition();
 
   const autoName = AUTO_NAMES[itemType];
   const resolvedName = autoName ?? itemName;
 
-  // Available stock for this type+name
   const available = batches
     .filter(
       (b) =>
@@ -60,9 +71,22 @@ export function UsageForm({
     setItemName("");
   }
 
+  function applyPreset(label: string) {
+    setNotes(label);
+  }
+
+  function handleAddPreset() {
+    const label = newPresetLabel.trim();
+    if (!label) return;
+    const tempId = `temp-${Date.now()}`;
+    setLocalPresets((prev) => [...prev, { id: tempId, label }]);
+    setNewPresetLabel("");
+    setShowAddPreset(false);
+    startAddPreset(() => createNotePreset(label));
+  }
+
   return (
     <form
-      action={createUsageLog}
       className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-5"
     >
       {/* Raid date */}
@@ -76,7 +100,7 @@ export function UsageForm({
           type="date"
           required
           defaultValue={today}
-          className={inputClass}
+          className={`${inputClass} cursor-pointer`}
         />
       </div>
 
@@ -198,15 +222,76 @@ export function UsageForm({
         />
       </div>
 
-      {/* Notes */}
+      {/* Notes with presets */}
       <div>
-        <label htmlFor="notes" className={labelClass}>
-          Notes <span className="text-zinc-500 font-normal">(optional)</span>
-        </label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label htmlFor="notes" className="text-sm font-medium text-zinc-300">
+            Notes <span className="text-zinc-500 font-normal">(optional)</span>
+          </label>
+        </div>
+
+        {/* Preset chips */}
+        {(localPresets.length > 0 || showAddPreset) && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {localPresets.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => applyPreset(p.label)}
+                className="px-2 py-0.5 rounded text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 transition-colors"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Inline add-preset */}
+        <div className="mb-2">
+          {showAddPreset ? (
+            <div className="flex items-center gap-1.5">
+              <input
+                type="text"
+                value={newPresetLabel}
+                onChange={(e) => setNewPresetLabel(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPreset())}
+                placeholder="Preset label…"
+                autoFocus
+                className="flex-1 bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500"
+              />
+              <button
+                type="button"
+                onClick={handleAddPreset}
+                disabled={isAddingPreset || !newPresetLabel.trim()}
+                className="text-xs bg-yellow-600 hover:bg-yellow-500 text-zinc-900 font-medium px-2 py-1 rounded transition-colors disabled:opacity-50"
+              >
+                {isAddingPreset ? "…" : "Add"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowAddPreset(false); setNewPresetLabel(""); }}
+                className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowAddPreset(true)}
+              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+            >
+              + add preset
+            </button>
+          )}
+        </div>
+
         <textarea
           id="notes"
           name="notes"
           rows={2}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
           placeholder="e.g. prog night, wipe recovery..."
           className={`${inputClass} resize-none`}
         />
