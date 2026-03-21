@@ -3,9 +3,6 @@ export const dynamic = "force-dynamic";
 import prisma from "@/lib/prisma";
 import { CrafterPayCard } from "@/components/CrafterPayCard";
 
-function formatGold(n: number) {
-  return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
-}
 
 export default async function PaymentsPage() {
   const crafters = await prisma.crafter.findMany({
@@ -37,31 +34,11 @@ export default async function PaymentsPage() {
     return { ...crafter, batchRows, totalOwed, totalPaid, balance };
   });
 
-  const grandOwed = crafterStats.reduce((s, c) => s + c.totalOwed, 0);
-  const grandPaid = crafterStats.reduce((s, c) => s + c.totalPaid, 0);
-
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Payments</p>
+        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Payments Log</p>
         <h1 className="text-3xl font-bold text-ink">Payments</h1>
-        <p className="text-ink-dim mt-1">
-          Track what has been paid to each crafter for consumed items
-        </p>
-      </div>
-
-      {/* Grand summary */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: "Total Owed", value: grandOwed, color: "text-primary" },
-          { label: "Total Paid", value: grandPaid, color: "text-green-400" },
-          { label: "Outstanding", value: grandOwed - grandPaid, color: grandOwed - grandPaid > 0 ? "text-red-400" : "text-ink-dim" },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="bg-surface border border-rim rounded-2xl px-4 py-3 shadow-lg shadow-black/30">
-            <p className="text-ink-faint text-xs mb-1">{label}</p>
-            <p className={`text-xl font-bold ${color}`}>{formatGold(value)}</p>
-          </div>
-        ))}
       </div>
 
       {/* Per-crafter sections */}

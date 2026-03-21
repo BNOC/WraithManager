@@ -37,9 +37,8 @@ export default async function CraftersPage() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Crafters</p>
+        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Crafters Setup</p>
         <h1 className="text-3xl font-bold text-ink">Crafters</h1>
-        <p className="text-ink-dim mt-1">Manage the guild&apos;s consumable crafters</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

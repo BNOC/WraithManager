@@ -58,6 +58,20 @@ export default async function DashboardPage() {
     entry.remainingValue += (b.quantity - used) * b.costPerUnit;
   }
   const TYPE_ORDER: Record<string, number> = { FLASK_CAULDRON: 0, POTION_CAULDRON: 1, FEAST: 2, VANTUS_RUNE: 3, OTHER: 4 };
+
+  // Always show these types even with no batches (feast handled separately)
+  const PINNED: { type: string; name: string }[] = [
+    { type: "FLASK_CAULDRON", name: "Flask Cauldron" },
+    { type: "POTION_CAULDRON", name: "Potion Cauldron" },
+    { type: "VANTUS_RUNE", name: "Vantus Rune" },
+  ];
+  for (const { type, name } of PINNED) {
+    const key = `${type}::${name}`;
+    if (!inventoryMap.has(key)) {
+      inventoryMap.set(key, { itemType: type, itemName: name, remaining: 0, total: 0, remainingValue: 0 });
+    }
+  }
+
   const inventory = [...inventoryMap.values()].sort(
     (a, b) => (TYPE_ORDER[a.itemType] ?? 9) - (TYPE_ORDER[b.itemType] ?? 9) || a.itemName.localeCompare(b.itemName)
   );
@@ -103,30 +117,67 @@ export default async function DashboardPage() {
       </div>
 
       {/* Inventory */}
-      {inventory.length > 0 && (
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-3">Current Inventory</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {inventory.map((item) => {
-              const pct = item.total > 0 ? item.remaining / item.total : 0;
-              const [numColor, borderAccent] =
-                item.remaining === 0
-                  ? ["text-red-400", "border-red-900/40"]
-                  : pct <= 0.25
-                  ? ["text-amber-400", "border-amber-900/40"]
-                  : ["text-emerald-400", "border-rim"];
-              return (
-                <div key={`${item.itemType}::${item.itemName}`} className={`bg-surface border ${borderAccent} rounded-2xl p-4 shadow-lg shadow-black/20`}>
-                  <ItemTypeBadge type={item.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
-                  {item.itemName && <p className="text-ink-faint text-xs mt-1.5 truncate">{item.itemName}</p>}
-                  <p className={`text-3xl font-bold mt-2 ${numColor}`}>{item.remaining}</p>
-                  <p className="text-ink-faint text-xs mt-0.5">of {item.total} crafted</p>
+      {(() => {
+        const FEAST_SUBTYPES = ["Primary Stat", "Secondary Stat"];
+        const feastItems = inventory.filter((i) => i.itemType === "FEAST");
+        const feastByName = new Map(feastItems.map((f) => [f.itemName, f]));
+        const feastRows = FEAST_SUBTYPES.map((name) => feastByName.get(name) ?? { itemType: "FEAST", itemName: name, remaining: 0, total: 0, remainingValue: 0 });
+        const nonFeastItems = inventory.filter((i) => i.itemType !== "FEAST");
+        const feastTotal = feastItems.reduce((s, i) => s + i.remaining, 0);
+        const feastCraftedTotal = feastItems.reduce((s, i) => s + i.total, 0);
+        const feastPct = feastCraftedTotal > 0 ? feastTotal / feastCraftedTotal : 0;
+        const [feastNumColor, feastBorder] =
+          feastCraftedTotal === 0
+            ? ["text-red-400", "border-red-900/40"]
+            : feastTotal === 0
+            ? ["text-red-400", "border-red-900/40"]
+            : feastPct <= 0.25
+            ? ["text-amber-400", "border-amber-900/40"]
+            : ["text-emerald-400", "border-rim"];
+
+        return (
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-3">Current Inventory</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {nonFeastItems.map((item) => {
+                const pct = item.total > 0 ? item.remaining / item.total : 0;
+                const [numColor, borderAccent] =
+                  item.total === 0
+                    ? ["text-red-400", "border-red-900/40"]
+                    : item.remaining === 0
+                    ? ["text-red-400", "border-red-900/40"]
+                    : pct <= 0.25
+                    ? ["text-amber-400", "border-amber-900/40"]
+                    : ["text-emerald-400", "border-rim"];
+                return (
+                  <div key={`${item.itemType}::${item.itemName}`} className={`bg-surface border ${borderAccent} rounded-2xl p-4 shadow-lg shadow-black/20`}>
+                    <ItemTypeBadge type={item.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                    {item.itemName && <p className="text-ink-faint text-xs mt-1.5 truncate">{item.itemName}</p>}
+                    <p className={`text-3xl font-bold mt-2 ${numColor}`}>
+                      {item.total === 0 ? "—" : item.remaining}
+                    </p>
+                  </div>
+                );
+              })}
+
+              {/* Merged feast card */}
+              <div className={`bg-surface border ${feastBorder} rounded-2xl p-4 shadow-lg shadow-black/20`}>
+                <ItemTypeBadge type={"FEAST" as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                <p className={`text-3xl font-bold mt-2 ${feastNumColor}`}>
+                  {feastCraftedTotal === 0 ? "—" : feastTotal}
+                </p>
+                <div className="mt-2 space-y-0.5">
+                  {feastRows.map((f) => (
+                    <p key={f.itemName} className="text-ink-faint text-xs">
+                      {f.itemName}: <span className="text-ink-dim">{f.total === 0 ? "—" : f.remaining}</span>
+                    </p>
+                  ))}
                 </div>
-              );
-            })}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Crafter balances */}

@@ -104,9 +104,6 @@ export default async function PricesPage({ searchParams }: PageProps) {
       <div>
         <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Price Config</p>
         <h1 className="text-3xl font-bold text-ink">Prices</h1>
-        <p className="text-ink-dim mt-1">
-          Set default material costs per item type. Used to pre-fill the log form and track cost history over the season.
-        </p>
       </div>
 
       {/* Current prices summary */}

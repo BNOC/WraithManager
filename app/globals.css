@@ -2,17 +2,24 @@
 
 :root {
   --theme-primary: #8788ee;
+  --theme-canvas: #09090f;
+  --theme-surface: #111119;
+  --theme-surface-hi: #18181f;
+  --theme-rim: #252530;
+  --theme-ink-faint: #3a3a55;
+  --theme-ink-dim: #7878a0;
+  --theme-ink: #e8e8f0;
 }
 
 @theme inline {
   --color-primary: var(--theme-primary);
-  --color-canvas: #09090f;
-  --color-surface: #111119;
-  --color-surface-hi: #18181f;
-  --color-rim: #252530;
-  --color-ink: #e8e8f0;
-  --color-ink-dim: #7878a0;
-  --color-ink-faint: #3a3a55;
+  --color-canvas: var(--theme-canvas);
+  --color-surface: var(--theme-surface);
+  --color-surface-hi: var(--theme-surface-hi);
+  --color-rim: var(--theme-rim);
+  --color-ink: var(--theme-ink);
+  --color-ink-dim: var(--theme-ink-dim);
+  --color-ink-faint: var(--theme-ink-faint);
   --font-sans: var(--font-geist-sans);
 }
 
