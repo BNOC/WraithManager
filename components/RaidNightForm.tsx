@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createRaidNightUsage, createNotePreset, type RaidNightEntry } from "@/lib/actions";
+import { createRaidNightUsage, createNotePreset, updateNotePreset, deleteNotePreset, type RaidNightEntry } from "@/lib/actions";
 
 interface Crafter {
   id: string;
@@ -71,6 +71,10 @@ export function RaidNightForm({
   const [isAddingPreset, startAddPreset] = useTransition();
   const [showAddPreset, setShowAddPreset] = useState(false);
   const [newPresetLabel, setNewPresetLabel] = useState("");
+  const [showManagePresets, setShowManagePresets] = useState(false);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [editingPresetLabel, setEditingPresetLabel] = useState("");
+  const [, startMutatePreset] = useTransition();
 
   function addEntry() {
     setEntries((prev) => [...prev, makeEntry(nextKey)]);
@@ -184,48 +188,132 @@ export function RaidNightForm({
       </button>
 
       {/* Note presets manager */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-zinc-600 text-xs">Note presets:</span>
-        {presets.map((p) => (
-          <span key={p.id} className="px-2 py-0.5 rounded text-xs bg-zinc-800 border border-zinc-700 text-zinc-500">
-            {p.label}
-          </span>
-        ))}
-        {showAddPreset ? (
-          <div className="flex items-center gap-1.5">
-            <input
-              type="text"
-              value={newPresetLabel}
-              onChange={(e) => setNewPresetLabel(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPreset())}
-              placeholder="Preset label…"
-              autoFocus
-              className="bg-zinc-800 border border-zinc-600 rounded px-2 py-0.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 w-32"
-            />
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-zinc-600 text-xs">Custom note presets:</span>
+          {presets.map((p) => (
+            <span key={p.id} className="px-2 py-0.5 rounded text-xs bg-zinc-800 border border-zinc-700 text-zinc-500">
+              {p.label}
+            </span>
+          ))}
+          {showAddPreset ? (
+            <div className="flex items-center gap-1.5">
+              <input
+                type="text"
+                value={newPresetLabel}
+                onChange={(e) => setNewPresetLabel(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPreset())}
+                placeholder="Preset label…"
+                autoFocus
+                className="bg-zinc-800 border border-zinc-600 rounded px-2 py-0.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 w-32"
+              />
+              <button
+                type="button"
+                onClick={handleAddPreset}
+                disabled={isAddingPreset || !newPresetLabel.trim()}
+                className="text-xs bg-yellow-600 hover:bg-yellow-500 text-zinc-900 font-medium px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+              >
+                {isAddingPreset ? "…" : "Add"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowAddPreset(false); setNewPresetLabel(""); }}
+                className="text-xs text-zinc-600 hover:text-zinc-400"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
             <button
               type="button"
-              onClick={handleAddPreset}
-              disabled={isAddingPreset || !newPresetLabel.trim()}
-              className="text-xs bg-yellow-600 hover:bg-yellow-500 text-zinc-900 font-medium px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+              onClick={() => setShowAddPreset(true)}
+              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
             >
-              {isAddingPreset ? "…" : "Add"}
+              + add
             </button>
+          )}
+          {presets.length > 0 && !showAddPreset && (
             <button
               type="button"
-              onClick={() => { setShowAddPreset(false); setNewPresetLabel(""); }}
-              className="text-xs text-zinc-600 hover:text-zinc-400"
+              onClick={() => { setShowManagePresets((v) => !v); setEditingPresetId(null); }}
+              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors ml-1"
             >
-              Cancel
+              {showManagePresets ? "▲ hide" : "✎ manage"}
             </button>
+          )}
+        </div>
+
+        {showManagePresets && presets.length > 0 && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg divide-y divide-zinc-800 overflow-hidden">
+            {presets.map((p) => (
+              <div key={p.id} className="flex items-center gap-2 px-3 py-2">
+                {editingPresetId === p.id ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editingPresetLabel}
+                      onChange={(e) => setEditingPresetLabel(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const label = editingPresetLabel.trim();
+                          if (!label) return;
+                          setPresets((prev) => prev.map((x) => x.id === p.id ? { ...x, label } : x));
+                          setEditingPresetId(null);
+                          startMutatePreset(() => updateNotePreset(p.id, label));
+                        } else if (e.key === "Escape") {
+                          setEditingPresetId(null);
+                        }
+                      }}
+                      autoFocus
+                      className="flex-1 bg-zinc-800 border border-zinc-600 rounded px-2 py-0.5 text-xs text-zinc-100 focus:outline-none focus:border-yellow-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const label = editingPresetLabel.trim();
+                        if (!label) return;
+                        setPresets((prev) => prev.map((x) => x.id === p.id ? { ...x, label } : x));
+                        setEditingPresetId(null);
+                        startMutatePreset(() => updateNotePreset(p.id, label));
+                      }}
+                      className="text-xs text-yellow-500 hover:text-yellow-400 font-medium transition-colors"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingPresetId(null)}
+                      className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 text-xs text-zinc-300">{p.label}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setEditingPresetId(p.id); setEditingPresetLabel(p.label); }}
+                      className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPresets((prev) => prev.filter((x) => x.id !== p.id));
+                        startMutatePreset(() => deleteNotePreset(p.id));
+                      }}
+                      className="text-xs text-zinc-600 hover:text-red-400 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowAddPreset(true)}
-            className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
-          >
-            + add preset
-          </button>
         )}
       </div>
 
