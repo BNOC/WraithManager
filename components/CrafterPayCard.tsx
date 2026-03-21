@@ -56,8 +56,8 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
         onClick={() => setOpen((v) => !v)}
         className="w-full px-4 py-3 border-b border-rim flex items-center justify-between flex-wrap gap-2 hover:bg-surface-hi/20 transition-colors text-left"
       >
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="flex items-center gap-2 shrink-0">
             <svg
               width="12"
               height="12"
@@ -69,7 +69,7 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
             </svg>
             <h2 className="text-lg font-semibold text-ink">{characterName}</h2>
           </div>
-          <div className="flex gap-3 text-sm">
+          <div className="hidden sm:flex gap-3 text-sm">
             <span className="text-ink-dim">
               Owed:{" "}
               <span className="text-primary font-medium">{formatGold(totalOwed)}</span>
@@ -80,12 +80,14 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
             </span>
           </div>
         </div>
-        <div className={`text-lg font-bold ${balance > 0 ? "text-red-400" : "text-green-400"}`}>
-          {balance > 0
-            ? `${formatGold(balance)} outstanding`
-            : totalOwed > 0
-            ? "✓ Settled"
-            : "Nothing owed"}
+        {/* Desktop: full label — Mobile: compact */}
+        <div className="shrink-0">
+          <span className={`hidden sm:inline text-base font-semibold ${balance > 0 ? "text-red-400" : "text-green-400"}`}>
+            {balance > 0 ? `${formatGold(balance)} outstanding` : totalOwed > 0 ? "✓ Settled" : "Nothing owed"}
+          </span>
+          <span className={`sm:hidden text-sm font-semibold ${balance > 0 ? "text-red-400" : "text-green-400"}`}>
+            {balance > 0 ? formatGold(balance) : "✓"}
+          </span>
         </div>
       </button>
 
