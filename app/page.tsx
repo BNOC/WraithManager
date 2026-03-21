@@ -10,6 +10,12 @@ function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
 }
 
+function formatGoldAbbr(n: number) {
+  if (n >= 1_000_000) return `${+(n / 1_000_000).toFixed(1)}m`;
+  if (n >= 1_000) return `${+(n / 1_000).toFixed(1)}k`;
+  return `${Math.round(n)}g`;
+}
+
 function formatDate(d: Date) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
@@ -103,17 +109,34 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {/* Stat cards — mobile: single condensed card */}
+      <div className="sm:hidden bg-surface border border-rim rounded-2xl px-4 py-3 shadow-lg shadow-black/30">
+        <div className="grid grid-cols-4 divide-x divide-rim text-center">
+          {[
+            { label: "Owed", value: formatGoldAbbr(grandOutstanding), accent: true },
+            { label: "Paid", value: formatGoldAbbr(grandTotalPaid), accent: false },
+            { label: "Inv.", value: formatGoldAbbr(totalInventoryValue), accent: false },
+            { label: "Crafters", value: crafters.length.toString(), accent: false },
+          ].map(({ label, value, accent }) => (
+            <div key={label} className="px-2">
+              <p className="text-ink-faint text-[10px] font-medium uppercase tracking-wider">{label}</p>
+              <p className={`text-base font-bold mt-0.5 ${accent ? "text-primary" : "text-ink"}`}>{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stat cards — desktop: separate cards */}
+      <div className="hidden sm:grid grid-cols-4 gap-4">
         {[
-          { label: "Outstanding", value: formatGold(grandOutstanding), accent: true, empty: false },
-          { label: "Total Paid", value: formatGold(grandTotalPaid), accent: false, empty: false },
-          { label: "Inventory Value", value: formatGold(totalInventoryValue), accent: false, empty: false },
-          { label: "Crafters", value: crafters.length.toString(), accent: false, empty: false },
-        ].map(({ label, value, accent, empty }) => (
-          <div key={label || "empty"} className={`bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30 ${empty ? "opacity-30" : ""}`}>
-            <p className="text-ink-faint text-xs font-medium uppercase tracking-wider">{label || "\u00a0"}</p>
-            <p className={`text-2xl font-bold mt-2 ${accent ? "text-primary" : "text-ink"}`}>{value || "\u00a0"}</p>
+          { label: "Outstanding", value: formatGold(grandOutstanding), accent: true },
+          { label: "Total Paid", value: formatGold(grandTotalPaid), accent: false },
+          { label: "Inventory Value", value: formatGold(totalInventoryValue), accent: false },
+          { label: "Crafters", value: crafters.length.toString(), accent: false },
+        ].map(({ label, value, accent }) => (
+          <div key={label} className="bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30">
+            <p className="text-ink-faint text-xs font-medium uppercase tracking-wider">{label}</p>
+            <p className={`text-2xl font-bold mt-2 ${accent ? "text-primary" : "text-ink"}`}>{value}</p>
           </div>
         ))}
       </div>
@@ -127,61 +150,54 @@ export default async function DashboardPage() {
         const nonFeastItems = inventory.filter((i) => i.itemType !== "FEAST");
         const feastTotal = feastItems.reduce((s, i) => s + i.remaining, 0);
         const feastCraftedTotal = feastItems.reduce((s, i) => s + i.total, 0);
-        const feastPct = feastCraftedTotal > 0 ? feastTotal / feastCraftedTotal : 0;
-        const [feastNumColor, feastBorder] =
-          feastCraftedTotal === 0
-            ? ["text-red-400", "border-red-900/40"]
-            : feastTotal === 0
-            ? ["text-red-400", "border-red-900/40"]
-            : feastPct <= 0.25
-            ? ["text-amber-400", "border-amber-900/40"]
-            : ["text-emerald-400", "border-rim"];
+
+        const allInventoryItems = [
+          ...nonFeastItems.map((item) => ({ ...item, isFeast: false })),
+          { itemType: "FEAST", itemName: "Feast", remaining: feastTotal, total: feastCraftedTotal, remainingValue: 0, isFeast: true },
+        ];
 
         return (
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-3">Current Inventory</h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {nonFeastItems.map((item) => {
+            <div className="bg-surface border border-rim rounded-2xl shadow-lg shadow-black/30 overflow-hidden divide-y divide-rim">
+              {allInventoryItems.map((item) => {
                 const pct = item.total > 0 ? item.remaining / item.total : 0;
-                const [numColor, borderAccent] =
-                  item.total === 0
-                    ? ["text-red-400", "border-red-900/40"]
-                    : item.remaining === 0
-                    ? ["text-red-400", "border-red-900/40"]
-                    : pct <= 0.25
-                    ? ["text-amber-400", "border-amber-900/40"]
-                    : ["text-emerald-400", "border-rim"];
+                const numColor =
+                  item.total === 0 ? "text-red-400"
+                  : item.remaining === 0 ? "text-red-400"
+                  : pct <= 0.25 ? "text-amber-400"
+                  : "text-emerald-400";
+                const type = item.itemType as Parameters<typeof ItemTypeIcon>[0]["type"];
+                const displayName = item.isFeast
+                  ? "Feast"
+                  : item.itemType === "OTHER" && item.itemName
+                  ? item.itemName
+                  : null;
                 return (
-                  <div key={`${item.itemType}::${item.itemName}`} className={`bg-surface border ${borderAccent} rounded-2xl p-4 shadow-lg shadow-black/20`}>
-                    <div className="flex items-center gap-2">
-                      <ItemTypeIcon type={item.itemType as Parameters<typeof ItemTypeIcon>[0]["type"]} size={18} />
-                      <ItemTypeBadge type={item.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                  <div key={`${item.itemType}::${item.itemName}`} className="flex items-center gap-3 px-4 py-3">
+                    <ItemTypeIcon type={type} size={18} />
+                    <div className="flex-1 min-w-0">
+                      <ItemTypeBadge type={type} />
+                      {displayName && (
+                        <p className="text-ink-faint text-xs mt-0.5 truncate">{displayName}</p>
+                      )}
+                      {item.isFeast && feastCraftedTotal > 0 && (
+                        <div className="flex gap-3 mt-0.5">
+                          {feastRows.map((f) => (
+                            <p key={f.itemName} className="text-ink-faint text-xs">
+                              {f.itemName.split(" ")[0]}:{" "}
+                              <span className="text-ink-dim font-medium">{f.total === 0 ? "—" : f.remaining}</span>
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    {item.itemName && <p className="text-ink-faint text-xs mt-1.5 truncate">{item.itemName}</p>}
-                    <p className={`text-3xl font-bold mt-2 ${numColor}`}>
+                    <p className={`text-2xl font-bold shrink-0 ${numColor}`}>
                       {item.total === 0 ? "—" : item.remaining}
                     </p>
                   </div>
                 );
               })}
-
-              {/* Merged feast card */}
-              <div className={`bg-surface border ${feastBorder} rounded-2xl p-4 shadow-lg shadow-black/20`}>
-                <div className="flex items-center gap-2">
-                  <ItemTypeIcon type={"FEAST" as Parameters<typeof ItemTypeIcon>[0]["type"]} size={18} />
-                  <ItemTypeBadge type={"FEAST" as Parameters<typeof ItemTypeBadge>[0]["type"]} />
-                </div>
-                <p className={`text-3xl font-bold mt-2 ${feastNumColor}`}>
-                  {feastCraftedTotal === 0 ? "—" : feastTotal}
-                </p>
-                <div className="mt-2 space-y-0.5">
-                  {feastRows.map((f) => (
-                    <p key={f.itemName} className="text-ink-faint text-xs">
-                      {f.itemName}: <span className="text-ink-dim">{f.total === 0 ? "—" : f.remaining}</span>
-                    </p>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         );
