@@ -27,45 +27,45 @@ export function MobileThemeButton() {
       )}
 
       {/* Bottom sheet */}
-      <div
-        className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-out ${open ? "translate-y-0 pointer-events-auto" : "translate-y-full pointer-events-none"}`}
-      >
-        <div className="bg-surface border-t border-rim rounded-t-2xl shadow-2xl shadow-black/60 p-5">
-          {/* Handle */}
-          <div className="flex justify-center -mt-1 mb-4">
-            <div className="w-8 h-1 rounded-full bg-rim" />
-          </div>
+      {open && (
+        <div className="fixed inset-x-0 bottom-0 z-50">
+          <div className="bg-surface border-t border-rim rounded-t-2xl shadow-2xl shadow-black/60 p-5">
+            {/* Handle */}
+            <div className="flex justify-center -mt-1 mb-4">
+              <div className="w-8 h-1 rounded-full bg-rim" />
+            </div>
 
-          <p className="text-ink-dim text-xs font-semibold uppercase tracking-wider mb-3">Class Colour</p>
-          <div className="grid grid-cols-4 gap-2.5">
-            {WOW_COLORS.map(({ name, color }) => {
-              const isActive = primary.toLowerCase() === color.toLowerCase();
-              return (
-                <button
-                  key={name}
-                  title={name}
-                  onClick={() => { setPrimary(color); setOpen(false); }}
-                  className="group flex flex-col items-center gap-1"
-                >
-                  <span
-                    className="w-10 h-10 rounded-full block transition-transform group-hover:scale-110 shadow-md"
-                    style={{
-                      backgroundColor: color,
-                      boxShadow: isActive ? `0 0 0 3px #fff3, 0 0 0 5px ${color}66` : undefined,
-                    }}
-                  />
-                  <span className="text-ink-faint text-[10px] leading-tight text-center truncate w-full">
-                    {name.split(" ").pop()}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+            <p className="text-ink-dim text-xs font-semibold uppercase tracking-wider mb-3">Class Colour</p>
+            <div className="grid grid-cols-4 gap-2.5">
+              {WOW_COLORS.map(({ name, color }) => {
+                const isActive = primary.toLowerCase() === color.toLowerCase();
+                return (
+                  <button
+                    key={name}
+                    title={name}
+                    onClick={() => { setPrimary(color); setOpen(false); }}
+                    className="group flex flex-col items-center gap-1"
+                  >
+                    <span
+                      className="w-10 h-10 rounded-full block transition-transform group-hover:scale-110 shadow-md"
+                      style={{
+                        backgroundColor: color,
+                        boxShadow: isActive ? `0 0 0 3px #fff3, 0 0 0 5px ${color}66` : undefined,
+                      }}
+                    />
+                    <span className="text-ink-faint text-[10px] leading-tight text-center truncate w-full">
+                      {name.split(" ").pop()}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* Safe area bottom spacer */}
-          <div className="h-2" />
+            {/* Safe area bottom spacer */}
+            <div className="h-2" />
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
