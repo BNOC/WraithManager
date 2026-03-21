@@ -40,7 +40,7 @@ export function SideNav() {
         <div className="px-5 py-6 border-b border-rim">
           <Link href="/" className="flex items-center gap-2.5 group">
             <span className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-              <SkullIcon />
+              <WraithIcon />
             </span>
             <span className="font-bold text-ink tracking-tight leading-none">
               Wraith<span className="text-primary">Manager</span>
@@ -83,7 +83,7 @@ export function SideNav() {
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-rim">
-          <p className="text-ink-faint text-xs">WoW Raid Guild Tracker</p>
+          <p className="text-ink-faint text-xs">@BNOC</p>
         </div>
       </nav>
 
@@ -111,10 +111,14 @@ export function SideNav() {
 
 // ── Icons ───────────────────────────────────────────────────────────────────
 
-function SkullIcon() {
+function WraithIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-primary">
-      <path d="M8 1a5 5 0 0 0-5 5c0 1.8.95 3.37 2.37 4.26L5 12h6l-.37-1.74A5 5 0 0 0 8 1zM6 8.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm4 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM6 13h4v1.5a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V13z" />
+      {/* Body: dome top, wavy bottom */}
+      <path d="M8 1C4.69 1 2 3.69 2 7v6.5l1.5-1.25 1.5 1.25 1.5-1.25 1.5 1.25 1.5-1.25 1.5 1.25 1.5-1.25V7c0-3.31-2.69-6-6-6z" />
+      {/* Eyes */}
+      <circle cx="5.8" cy="7" r="1" fill="var(--color-surface)" />
+      <circle cx="10.2" cy="7" r="1" fill="var(--color-surface)" />
     </svg>
   );
 }

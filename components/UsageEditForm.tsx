@@ -44,6 +44,7 @@ interface LogData {
   itemName: string | null;
   quantityUsed: number;
   notes: string | null;
+  crafterId: string;
 }
 
 export function UsageEditForm({
@@ -62,7 +63,7 @@ export function UsageEditForm({
   const [itemType, setItemType] = useState(log.itemType);
   const [itemName, setItemName] = useState(log.itemName ?? "");
   const [quantityUsed, setQuantityUsed] = useState(log.quantityUsed);
-  const [crafterId, setCrafterId] = useState("");
+  const [crafterId, setCrafterId] = useState(log.crafterId);
   const [notes, setNotes] = useState(log.notes ?? "");
   const [isSaving, startSave] = useTransition();
   const [isDeleting, startDelete] = useTransition();

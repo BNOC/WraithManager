@@ -12,7 +12,10 @@ export default async function EditUsagePage({ params }: PageProps) {
   const { id } = await params;
 
   const [log, crafters, batches, presets] = await Promise.all([
-    prisma.usageLog.findUnique({ where: { id } }),
+    prisma.usageLog.findUnique({
+      where: { id },
+      include: { lines: { include: { batch: { select: { crafterId: true } } } } },
+    }),
     prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
     prisma.craftBatch.findMany({
       orderBy: { craftedAt: "asc" },
@@ -25,6 +28,10 @@ export default async function EditUsagePage({ params }: PageProps) {
   ]);
 
   if (!log) notFound();
+
+  // Derive pre-selected crafter: if all attribution lines come from the same crafter, pre-select it
+  const crafterIds = [...new Set(log.lines.map((l) => l.batch.crafterId))];
+  const initialCrafterId = crafterIds.length === 1 ? crafterIds[0] : "";
 
   const batchSummaries = batches
     .map((b) => ({
@@ -51,6 +58,7 @@ export default async function EditUsagePage({ params }: PageProps) {
           itemName: log.itemName,
           quantityUsed: log.quantityUsed,
           notes: log.notes,
+          crafterId: initialCrafterId,
         }}
         crafters={crafters}
         batches={batchSummaries}
