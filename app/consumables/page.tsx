@@ -15,7 +15,6 @@ function formatDate(d: Date) {
   return new Date(d).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: "numeric",
   });
 }
 
@@ -104,14 +103,14 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
             <thead>
               <tr className="border-b border-rim bg-surface/50">
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Item</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden md:table-cell">Crafter</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Crafted</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Used</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Left</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Crafter</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Crafted</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Used</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Left</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Cost/Unit</th>
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Owed</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden lg:table-cell">Payment</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden lg:table-cell">Date</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Payment</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Date</th>
               </tr>
             </thead>
             <tbody>
@@ -125,27 +124,27 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                       <div className="flex items-center gap-1.5 flex-nowrap">
                         <ItemTypeIcon type={row.itemType} size={16} />
                         <span className="text-ink font-medium">{row.itemName}</span>
-                        <ItemTypeBadge type={row.itemType} small />
+                        <span className="hidden sm:inline-flex"><ItemTypeBadge type={row.itemType} small /></span>
                       </div>
                       {row.notes && (
                         <p className="text-ink-dim text-xs">{row.notes}</p>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-ink-dim hidden md:table-cell">
+                  <td className="px-4 py-3 text-ink-dim whitespace-nowrap">
                     {row.crafter.characterName}
                   </td>
-                  <td className="px-4 py-3 text-right text-ink hidden sm:table-cell">
+                  <td className="px-4 py-3 text-right text-ink">
                     {row.quantity}
                   </td>
-                  <td className="px-4 py-3 text-right text-ink hidden sm:table-cell">
+                  <td className="px-4 py-3 text-right text-ink">
                     {row.usedQty > 0 ? (
                       <span className="text-blue-400">{row.usedQty}</span>
                     ) : (
                       <span className="text-ink-faint">0</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right hidden sm:table-cell">
+                  <td className="px-4 py-3 text-right">
                     {row.remaining > 0 ? (
                       <span className="text-ink">{row.remaining}</span>
                     ) : (
@@ -160,14 +159,14 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                       {formatGold(row.owedAmount)}
                     </span>
                   </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
+                  <td className="px-4 py-3">
                     <PaymentBadge
                       paidAmount={row.paidAmount}
                       owedAmount={row.owedAmount}
                       status={row.paymentStatus}
                     />
                   </td>
-                  <td className="px-4 py-3 text-ink-dim text-xs hidden lg:table-cell">
+                  <td className="px-4 py-3 text-ink-dim text-xs whitespace-nowrap">
                     {formatDate(row.craftedAt)}
                   </td>
                 </tr>

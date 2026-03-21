@@ -31,7 +31,7 @@ export default function RootLayout({
             <SideNav />
 
             {/* Main content */}
-            <main className="flex-1 md:ml-60 min-h-screen flex flex-col">
+            <main className="flex-1 min-w-0 md:ml-60 min-h-screen flex flex-col">
               {/* Top header — mobile only */}
               <header className="md:hidden sticky top-0 z-20 bg-surface/80 backdrop-blur border-b border-rim px-4 py-3 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">

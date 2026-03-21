@@ -15,7 +15,6 @@ function formatDate(d: Date | string) {
   return new Date(d).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    year: "numeric",
   });
 }
 
@@ -115,8 +114,8 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
                   <tr className="border-b border-rim/50 bg-surface/30">
                     <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Date</th>
                     <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Item</th>
-                    <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Crafted</th>
-                    <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Used</th>
+                    <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Crafted</th>
+                    <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Used</th>
                     <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Owed</th>
                     <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Payment</th>
                   </tr>
@@ -134,10 +133,10 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
                           <span className="text-ink text-xs">{batch.itemName}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-2.5 text-right text-ink-dim text-xs hidden sm:table-cell">
+                      <td className="px-4 py-2.5 text-right text-ink-dim text-xs whitespace-nowrap">
                         {batch.quantity} × {formatGold(batch.costPerUnit)}
                       </td>
-                      <td className="px-4 py-2.5 text-right text-ink-dim text-xs hidden sm:table-cell">
+                      <td className="px-4 py-2.5 text-right text-ink-dim text-xs">
                         {batch.usedQty > 0 ? (
                           <span>{batch.usedQty}/{batch.quantity}</span>
                         ) : (
