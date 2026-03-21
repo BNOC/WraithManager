@@ -5,9 +5,17 @@ const typeConfig: Record<ItemType, { label: string; className: string }> = {
     label: "Flask",
     className: "bg-purple-900/50 text-purple-300 border border-purple-700",
   },
+  FLASK_CAULDRON: {
+    label: "Flask Cauldron",
+    className: "bg-violet-900/50 text-violet-300 border border-violet-700",
+  },
   POTION: {
     label: "Potion",
     className: "bg-red-900/50 text-red-300 border border-red-700",
+  },
+  POTION_CAULDRON: {
+    label: "Potion Cauldron",
+    className: "bg-rose-900/50 text-rose-300 border border-rose-700",
   },
   FOOD: {
     label: "Food",

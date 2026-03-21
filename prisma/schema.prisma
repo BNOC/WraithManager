@@ -20,20 +20,31 @@ model Crafter {
 }
 
 model ConsumableEntry {
-  id          String     @id @default(cuid())
+  id          String          @id @default(cuid())
   crafterId   String
-  crafter     Crafter    @relation(fields: [crafterId], references: [id])
+  crafter     Crafter         @relation(fields: [crafterId], references: [id])
   itemName    String
-  itemType    ItemType   @default(OTHER)
+  itemType    ItemType        @default(OTHER)
   quantity    Int
   costPerUnit Float
   totalCost   Float
-  craftedAt   DateTime   @default(now())
+  craftedAt   DateTime        @default(now())
   raidDate    DateTime?
-  status      ItemStatus @default(AVAILABLE)
+  status      ItemStatus      @default(AVAILABLE)
   notes       String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  uses        ConsumableUse[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model ConsumableUse {
+  id        String          @id @default(cuid())
+  entryId   String
+  entry     ConsumableEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  unitIndex Int
+  status    ItemStatus      @default(AVAILABLE)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 model Payment {
@@ -48,7 +59,9 @@ model Payment {
 
 enum ItemType {
   FLASK
+  FLASK_CAULDRON
   POTION
+  POTION_CAULDRON
   FOOD
   ENCHANT
   OTHER

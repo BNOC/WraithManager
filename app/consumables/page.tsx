@@ -1,9 +1,9 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { StatusBadge } from "@/components/StatusBadge";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
 import { MarkUsedButton } from "@/components/MarkUsedButton";
+import { UseTracker } from "@/components/UseTracker";
 import type { Crafter, ItemStatus, ItemType } from "@prisma/client";
 
 function formatGold(amount: number) {
@@ -35,14 +35,17 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
   if (params.status && ["AVAILABLE", "USED", "WASTED"].includes(params.status)) {
     where.status = params.status as ItemStatus;
   }
-  if (params.type && ["FLASK", "POTION", "FOOD", "ENCHANT", "OTHER"].includes(params.type)) {
+  if (
+    params.type &&
+    ["FLASK", "FLASK_CAULDRON", "POTION", "POTION_CAULDRON", "FOOD", "ENCHANT", "OTHER"].includes(params.type)
+  ) {
     where.itemType = params.type as ItemType;
   }
 
   const entries = await prisma.consumableEntry.findMany({
     where,
     orderBy: { craftedAt: "desc" },
-    include: { crafter: true },
+    include: { crafter: true, uses: { orderBy: { unitIndex: "asc" } } },
   });
 
   const totalCost = entries.reduce((sum, e) => sum + e.totalCost, 0);
@@ -127,7 +130,9 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
           {[
             { value: undefined, label: "All Types" },
             { value: "FLASK", label: "Flask" },
+            { value: "FLASK_CAULDRON", label: "Flask Cauldron" },
             { value: "POTION", label: "Potion" },
+            { value: "POTION_CAULDRON", label: "Potion Cauldron" },
             { value: "FOOD", label: "Food" },
             { value: "ENCHANT", label: "Enchant" },
             { value: "OTHER", label: "Other" },
@@ -180,7 +185,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                   Total
                 </th>
                 <th className="text-left px-4 py-3 text-zinc-400 font-medium">
-                  Status
+                  Uses
                 </th>
                 <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden lg:table-cell">
                   Date
@@ -223,14 +228,16 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     {formatGold(entry.totalCost)}
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={entry.status} />
+                    {entry.uses.length > 0 ? (
+                      <UseTracker uses={entry.uses} />
+                    ) : (
+                      <MarkUsedButton id={entry.id} currentStatus={entry.status} />
+                    )}
                   </td>
                   <td className="px-4 py-3 text-zinc-500 text-xs hidden lg:table-cell">
                     {formatDate(entry.craftedAt)}
                   </td>
-                  <td className="px-4 py-3">
-                    <MarkUsedButton id={entry.id} currentStatus={entry.status} />
-                  </td>
+                  <td className="px-4 py-3"></td>
                 </tr>
               ))}
             </tbody>

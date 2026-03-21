@@ -98,7 +98,9 @@ export default async function NewConsumablePage() {
               className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
             >
               <option value="FLASK">Flask</option>
+              <option value="FLASK_CAULDRON">Flask Cauldron</option>
               <option value="POTION">Potion</option>
+              <option value="POTION_CAULDRON">Potion Cauldron</option>
               <option value="FOOD">Food</option>
               <option value="ENCHANT">Enchant</option>
               <option value="OTHER">Other</option>

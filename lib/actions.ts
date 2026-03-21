@@ -50,7 +50,7 @@ export async function createConsumableEntry(formData: FormData) {
   const totalCost = quantity * costPerUnit;
   const raidDate = raidDateStr ? new Date(raidDateStr) : null;
 
-  await prisma.consumableEntry.create({
+  const entry = await prisma.consumableEntry.create({
     data: {
       crafterId,
       itemName,
@@ -64,6 +64,14 @@ export async function createConsumableEntry(formData: FormData) {
     },
   });
 
+  await prisma.consumableUse.createMany({
+    data: Array.from({ length: quantity }, (_, i) => ({
+      entryId: entry.id,
+      unitIndex: i + 1,
+      status: "AVAILABLE" as ItemStatus,
+    })),
+  });
+
   revalidatePath("/consumables");
   revalidatePath("/");
   redirect("/consumables");
@@ -73,6 +81,34 @@ export async function updateEntryStatus(id: string, status: ItemStatus) {
   await prisma.consumableEntry.update({
     where: { id },
     data: { status },
+  });
+
+  await prisma.consumableUse.updateMany({
+    where: { entryId: id },
+    data: { status },
+  });
+
+  revalidatePath("/consumables");
+  revalidatePath("/");
+}
+
+export async function updateUseStatus(useId: string, status: ItemStatus) {
+  const use = await prisma.consumableUse.update({
+    where: { id: useId },
+    data: { status },
+  });
+
+  const allUses = await prisma.consumableUse.findMany({
+    where: { entryId: use.entryId },
+  });
+
+  const allUsed = allUses.every((u) => u.status === "USED");
+  const allWasted = allUses.every((u) => u.status === "WASTED");
+  const entryStatus: ItemStatus = allUsed ? "USED" : allWasted ? "WASTED" : "AVAILABLE";
+
+  await prisma.consumableEntry.update({
+    where: { id: use.entryId },
+    data: { status: entryStatus },
   });
 
   revalidatePath("/consumables");
