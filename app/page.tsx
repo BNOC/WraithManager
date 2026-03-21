@@ -53,6 +53,10 @@ export default async function DashboardPage() {
 
   const grandOutstanding = crafterSummaries.reduce((s, c) => s + c.outstanding, 0);
   const grandTotalPaid = crafterSummaries.reduce((s: number, c: { totalPaid: number }) => s + c.totalPaid, 0);
+  const grandTotalCost = allBatches.reduce((s: number, b: { costPerUnit: number; usageLines: { quantity: number }[] }) => {
+    const used = b.usageLines.reduce((u: number, l: { quantity: number }) => u + l.quantity, 0);
+    return s + used * b.costPerUnit;
+  }, 0);
 
   // Inventory
   const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number; remainingValue: number }>();
@@ -119,7 +123,7 @@ export default async function DashboardPage() {
             { label: "Outstanding", shortLabel: "Owed", value: formatGold(grandOutstanding), abbr: formatGoldAbbr(grandOutstanding), accent: true },
             { label: "Total Paid", shortLabel: "Paid", value: formatGold(grandTotalPaid), abbr: formatGoldAbbr(grandTotalPaid), accent: false },
             { label: "Inventory Value", shortLabel: "Inv.", value: formatGold(totalInventoryValue), abbr: formatGoldAbbr(totalInventoryValue), accent: false },
-            { label: "Crafters", shortLabel: "Crafters", value: crafters.length.toString(), abbr: crafters.length.toString(), accent: false },
+            { label: "Total Spent", shortLabel: "Spent", value: formatGold(grandTotalCost), abbr: formatGoldAbbr(grandTotalCost), accent: false },
           ].map(({ label, shortLabel, value, abbr, accent }) => (
             <div key={label} className={`relative px-4 sm:px-7 py-4 sm:py-6 ${accent ? "bg-primary/[0.05]" : ""}`}>
               {accent && <div className="absolute top-0 inset-x-0 h-0.5 bg-primary/50" />}
