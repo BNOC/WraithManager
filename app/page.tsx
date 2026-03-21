@@ -205,7 +205,7 @@ export default async function DashboardPage() {
                   <p className="font-semibold text-ink">{c.characterName}</p>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-lg font-bold text-green-600">{formatGold(c.totalPaid)}</p>
+                      <p className="text-lg font-bold text-green-600">+{formatGold(c.totalPaid)}</p>
                       <p className="text-ink-faint text-xs">paid</p>
                     </div>
                     <div className="text-right">
