@@ -296,21 +296,32 @@ export default async function DashboardPage() {
             <div className="space-y-2">
               {recentUsage.map((log) => {
                 const value = log.lines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
+                const crafterName = log.lines[0]?.batch.crafter.name;
                 return (
-                  <div key={log.id} className="bg-surface border border-rim rounded-2xl px-4 py-3 flex items-center justify-between gap-2 shadow-lg shadow-black/20">
-                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <RaidDayBadge date={log.raidDate} />
-                        <span className="text-ink-faint text-xs">{formatDate(log.raidDate)}</span>
+                  <div key={log.id} className="bg-surface border border-rim rounded-2xl px-4 py-3 shadow-lg shadow-black/20">
+                    {/* Row 1: date + pill + value */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <RaidDayBadge date={log.raidDate} />
+                          <span className="text-ink-faint text-xs">{formatDate(log.raidDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <ItemTypeIcon type={log.itemType} size={16} />
+                          <ItemTypeBadge type={log.itemType} small />
+                        </div>
+                        {/* Desktop only: name + qty inline */}
+                        {log.itemName && <span className="hidden sm:inline text-ink-dim text-xs truncate">{log.itemName}</span>}
+                        <span className="hidden sm:inline text-ink font-bold text-sm shrink-0">×{log.quantityUsed}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <ItemTypeIcon type={log.itemType} size={16} />
-                        <ItemTypeBadge type={log.itemType} small />
-                      </div>
-                      {log.itemName && <span className="text-ink-dim text-xs truncate">{log.itemName}</span>}
-                      <span className="text-ink font-bold text-sm shrink-0">×{log.quantityUsed}</span>
+                      <span className="text-primary font-medium text-sm shrink-0">{value > 0 ? formatGold(value) : "—"}</span>
                     </div>
-                    <span className="text-primary font-medium text-sm shrink-0">{value > 0 ? formatGold(value) : "—"}</span>
+                    {/* Row 2: mobile only — name · qty · crafter */}
+                    <div className="sm:hidden flex items-center gap-2 mt-1.5 text-xs text-ink-dim">
+                      {log.itemName && <span>{log.itemName}</span>}
+                      <span className="text-ink font-bold">×{log.quantityUsed}</span>
+                      {crafterName && <span className="text-ink-faint">{crafterName}</span>}
+                    </div>
                   </div>
                 );
               })}
@@ -349,10 +360,21 @@ export default async function DashboardPage() {
                 {recentBatches.map((b) => (
                   <tr key={b.id} className="hover:bg-surface-hi/50 transition-colors">
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      {/* Desktop: all inline */}
+                      <div className="hidden sm:flex items-center gap-2">
                         <ItemTypeIcon type={b.itemType} size={16} />
                         <span className="text-ink font-medium">{b.itemName}</span>
                         <ItemTypeBadge type={b.itemType} />
+                      </div>
+                      {/* Mobile: icon + name on row 1, pill on row 2 */}
+                      <div className="sm:hidden">
+                        <div className="flex items-center gap-2">
+                          <ItemTypeIcon type={b.itemType} size={16} />
+                          <span className="text-ink font-medium">{b.itemName}</span>
+                        </div>
+                        <div className="mt-1">
+                          <ItemTypeBadge type={b.itemType} small />
+                        </div>
                       </div>
                     </td>
                     <td className="px-5 py-3.5 text-ink-dim hidden sm:table-cell">{b.crafter.characterName}</td>

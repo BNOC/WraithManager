@@ -155,7 +155,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     {formatGold(row.costPerUnit)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="text-primary font-medium">
+                    <span className={`font-medium ${row.paymentStatus === "paid" ? "line-through text-ink-faint" : "text-primary"}`}>
                       {formatGold(row.owedAmount)}
                     </span>
                   </td>
