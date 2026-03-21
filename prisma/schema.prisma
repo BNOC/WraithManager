@@ -11,41 +11,52 @@ datasource db {
 }
 
 model Crafter {
-  id            String             @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String
   characterName String
-  createdAt     DateTime           @default(now())
-  entries       ConsumableEntry[]
-  payments      Payment[]
+  createdAt     DateTime     @default(now())
+  batches       CraftBatch[]
 }
 
-model ConsumableEntry {
-  id          String          @id @default(cuid())
+// One record per crafting session
+model CraftBatch {
+  id          String      @id @default(cuid())
   crafterId   String
-  crafter     Crafter         @relation(fields: [crafterId], references: [id])
+  crafter     Crafter     @relation(fields: [crafterId], references: [id])
+  itemType    ItemType
   itemName    String
-  itemType    ItemType        @default(OTHER)
   quantity    Int
   costPerUnit Float
-  totalCost   Float
-  craftedAt   DateTime        @default(now())
-  raidDate    DateTime?
-  status      ItemStatus      @default(AVAILABLE)
+  craftedAt   DateTime    @default(now())
   notes       String?
-  uses        ConsumableUse[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  paidAmount  Float       @default(0)
+  usageLines  UsageLine[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
-model ConsumableUse {
-  id        String          @id @default(cuid())
-  entryId   String
-  entry     ConsumableEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  unitIndex Int
-  status    ItemStatus      @default(AVAILABLE)
-  usedAt    DateTime?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+// One record per raid-night usage event
+model UsageLog {
+  id           String      @id @default(cuid())
+  raidDate     DateTime
+  itemType     ItemType
+  itemName     String?
+  quantityUsed Int
+  notes        String?
+  lines        UsageLine[]
+  createdAt    DateTime    @default(now())
+}
+
+// FIFO attribution — links a UsageLog to one or more CraftBatches
+model UsageLine {
+  id           String     @id @default(cuid())
+  usageLogId   String
+  usageLog     UsageLog   @relation(fields: [usageLogId], references: [id], onDelete: Cascade)
+  batchId      String
+  batch        CraftBatch @relation(fields: [batchId], references: [id])
+  quantity     Int
+  costPerUnit  Float      // snapshot from CraftBatch at time of attribution
+  createdAt    DateTime   @default(now())
 }
 
 model PriceConfig {
@@ -57,26 +68,10 @@ model PriceConfig {
   createdAt     DateTime @default(now())
 }
 
-model Payment {
-  id        String   @id @default(cuid())
-  crafterId String
-  crafter   Crafter  @relation(fields: [crafterId], references: [id])
-  amount    Float
-  paidAt    DateTime @default(now())
-  notes     String?
-  createdAt DateTime @default(now())
-}
-
 enum ItemType {
   FLASK_CAULDRON
   POTION_CAULDRON
   FEAST
   VANTUS_RUNE
   OTHER
-}
-
-enum ItemStatus {
-  AVAILABLE
-  USED
-  WASTED
 }

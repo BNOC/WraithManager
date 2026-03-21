@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createCraftBatch } from "@/lib/actions";
+import { createUsageLog } from "@/lib/actions";
 
 interface Crafter {
   id: string;
-  name: string;
   characterName: string;
+}
+
+interface BatchSummary {
+  itemType: string;
+  itemName: string;
+  remaining: number;
+  craftedAt: Date;
+  crafter: string;
 }
 
 const AUTO_NAMES: Partial<Record<string, string>> = {
@@ -16,45 +23,67 @@ const AUTO_NAMES: Partial<Record<string, string>> = {
   VANTUS_RUNE: "Vantus Rune",
 };
 
-type DefaultPrices = Partial<Record<string, number>>;
-
 const selectClass =
   "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
 const inputClass =
   "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
 const labelClass = "block text-sm font-medium text-zinc-300 mb-1.5";
 
-export function ConsumableForm({
+export function UsageForm({
   crafters,
-  defaultPrices = {},
+  batches,
   today,
 }: {
   crafters: Crafter[];
-  defaultPrices?: DefaultPrices;
-  today: string; // ISO date string, passed from server to avoid client/server mismatch
+  batches: BatchSummary[];
+  today: string;
 }) {
   const [itemType, setItemType] = useState("FLASK_CAULDRON");
-  const [costPerUnit, setCostPerUnit] = useState(
-    () => defaultPrices["FLASK_CAULDRON"]?.toString() ?? ""
-  );
+  const [itemName, setItemName] = useState<string>("");
+
+  const autoName = AUTO_NAMES[itemType];
+  const resolvedName = autoName ?? itemName;
+
+  // Available stock for this type+name
+  const available = batches
+    .filter(
+      (b) =>
+        b.itemType === itemType &&
+        (autoName ? true : b.itemName === resolvedName)
+    )
+    .sort((a, b) => new Date(a.craftedAt).getTime() - new Date(b.craftedAt).getTime());
+
+  const totalAvailable = available.reduce((s, b) => s + b.remaining, 0);
 
   function handleTypeChange(type: string) {
     setItemType(type);
-    const price = defaultPrices[type];
-    if (price !== undefined) setCostPerUnit(price.toString());
+    setItemName("");
   }
-
-  const autoName = AUTO_NAMES[itemType];
 
   return (
     <form
-      action={createCraftBatch}
+      action={createUsageLog}
       className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-5"
     >
-      {/* Type — first */}
+      {/* Raid date */}
+      <div>
+        <label htmlFor="raidDate" className={labelClass}>
+          Raid Date <span className="text-red-400">*</span>
+        </label>
+        <input
+          id="raidDate"
+          name="raidDate"
+          type="date"
+          required
+          defaultValue={today}
+          className={inputClass}
+        />
+      </div>
+
+      {/* Type */}
       <div>
         <label htmlFor="itemType" className={labelClass}>
-          Type <span className="text-red-400">*</span>
+          Item Type <span className="text-red-400">*</span>
         </label>
         <select
           id="itemType"
@@ -80,7 +109,15 @@ export function ConsumableForm({
           <label htmlFor="itemName" className={labelClass}>
             Feast Type <span className="text-red-400">*</span>
           </label>
-          <select id="itemName" name="itemName" required className={selectClass}>
+          <select
+            id="itemName"
+            name="itemName"
+            required
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+            className={selectClass}
+          >
+            <option value="">Select…</option>
             <option value="Primary Stat">Primary Stat</option>
             <option value="Secondary Stat">Secondary Stat</option>
           </select>
@@ -95,18 +132,22 @@ export function ConsumableForm({
             name="itemName"
             type="text"
             required
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
             placeholder="Enter item name"
             className={inputClass}
           />
         </div>
       )}
 
-      {/* Crafter */}
+      {/* Crafter filter (optional) */}
       <div>
         <label htmlFor="crafterId" className={labelClass}>
-          Crafter <span className="text-red-400">*</span>
+          From Crafter{" "}
+          <span className="text-zinc-500 font-normal">(optional — leave blank for any)</span>
         </label>
-        <select id="crafterId" name="crafterId" required className={selectClass}>
+        <select id="crafterId" name="crafterId" className={selectClass}>
+          <option value="">Any (FIFO across all crafters)</option>
           {crafters.map((c) => (
             <option key={c.id} value={c.id}>
               {c.characterName}
@@ -115,52 +156,44 @@ export function ConsumableForm({
         </select>
       </div>
 
-      {/* Quantity + Cost per unit */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="quantity" className={labelClass}>
-            Quantity <span className="text-red-400">*</span>
-          </label>
-          <input
-            id="quantity"
-            name="quantity"
-            type="number"
-            required
-            min="1"
-            defaultValue="1"
-            className={inputClass}
-          />
+      {/* Available stock info */}
+      {(autoName || itemName) && (
+        <div className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-3 text-sm">
+          {totalAvailable > 0 ? (
+            <div className="space-y-1">
+              <p className="text-zinc-300">
+                <span className="text-yellow-400 font-medium">{totalAvailable}</span>{" "}
+                available across {available.length} batch{available.length !== 1 ? "es" : ""} (FIFO order):
+              </p>
+              {available.map((b, i) => (
+                <p key={i} className="text-zinc-500 text-xs ml-2">
+                  · {b.remaining} from {b.crafter} (crafted{" "}
+                  {new Date(b.craftedAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                  )
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-500">No stock available for this item.</p>
+          )}
         </div>
-        <div>
-          <label htmlFor="costPerUnit" className={labelClass}>
-            Cost / Unit (gold) <span className="text-red-400">*</span>
-          </label>
-          <input
-            id="costPerUnit"
-            name="costPerUnit"
-            type="number"
-            required
-            min="0"
-            step="1"
-            placeholder="e.g. 5000"
-            value={costPerUnit}
-            onChange={(e) => setCostPerUnit(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
+      )}
 
-      {/* Date crafted */}
+      {/* Quantity used */}
       <div>
-        <label htmlFor="craftedAt" className={labelClass}>
-          Date Crafted <span className="text-red-400">*</span>
+        <label htmlFor="quantityUsed" className={labelClass}>
+          Quantity Used <span className="text-red-400">*</span>
         </label>
         <input
-          id="craftedAt"
-          name="craftedAt"
-          type="date"
+          id="quantityUsed"
+          name="quantityUsed"
+          type="number"
           required
-          defaultValue={today}
+          min="1"
+          defaultValue="1"
           className={inputClass}
         />
       </div>
@@ -174,7 +207,7 @@ export function ConsumableForm({
           id="notes"
           name="notes"
           rows={2}
-          placeholder="Any additional notes..."
+          placeholder="e.g. prog night, wipe recovery..."
           className={`${inputClass} resize-none`}
         />
       </div>
@@ -184,10 +217,10 @@ export function ConsumableForm({
           type="submit"
           className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-6 py-2 rounded-lg transition-colors"
         >
-          Save Craft
+          Log Usage
         </button>
         <Link
-          href="/consumables"
+          href="/usage"
           className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-medium px-6 py-2 rounded-lg transition-colors border border-zinc-700"
         >
           Cancel

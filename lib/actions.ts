@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import prisma from "./prisma";
-import { ItemStatus, ItemType } from "@prisma/client";
+import { ItemType } from "@prisma/client";
 
 // ---- Crafter actions ----
 
@@ -36,40 +36,29 @@ export async function updateCrafter(id: string, formData: FormData) {
   redirect("/crafters");
 }
 
-// ---- Consumable entry actions ----
+// ---- Craft batch actions ----
 
-export async function createConsumableEntry(formData: FormData) {
+export async function createCraftBatch(formData: FormData) {
   const crafterId = formData.get("crafterId") as string;
-  const itemName = formData.get("itemName") as string;
   const itemType = formData.get("itemType") as ItemType;
+  const itemName = formData.get("itemName") as string;
   const quantity = parseInt(formData.get("quantity") as string, 10);
   const costPerUnit = parseFloat(formData.get("costPerUnit") as string);
-  const raidDateStr = formData.get("raidDate") as string;
+  const craftedAtStr = formData.get("craftedAt") as string;
   const notes = formData.get("notes") as string;
 
-  const totalCost = quantity * costPerUnit;
-  const raidDate = raidDateStr ? new Date(raidDateStr) : null;
+  const craftedAt = craftedAtStr ? new Date(craftedAtStr) : new Date();
 
-  const entry = await prisma.consumableEntry.create({
+  await prisma.craftBatch.create({
     data: {
       crafterId,
-      itemName,
       itemType,
+      itemName,
       quantity,
       costPerUnit,
-      totalCost,
-      raidDate,
+      craftedAt,
       notes: notes || null,
-      status: "AVAILABLE",
     },
-  });
-
-  await prisma.consumableUse.createMany({
-    data: Array.from({ length: quantity }, (_, i) => ({
-      entryId: entry.id,
-      unitIndex: i + 1,
-      status: "AVAILABLE" as ItemStatus,
-    })),
   });
 
   revalidatePath("/consumables");
@@ -77,46 +66,90 @@ export async function createConsumableEntry(formData: FormData) {
   redirect("/consumables");
 }
 
-export async function updateEntryStatus(id: string, status: ItemStatus) {
-  await prisma.consumableEntry.update({
-    where: { id },
-    data: { status },
-  });
+// ---- Usage log actions ----
 
-  await prisma.consumableUse.updateMany({
-    where: { entryId: id },
-    data: {
-      status,
-      usedAt: status === "USED" ? new Date() : null,
+export async function createUsageLog(formData: FormData) {
+  const raidDateStr = formData.get("raidDate") as string;
+  const itemType = formData.get("itemType") as ItemType;
+  const itemName = (formData.get("itemName") as string) || null;
+  const quantityUsed = parseInt(formData.get("quantityUsed") as string, 10);
+  const crafterId = (formData.get("crafterId") as string) || null;
+  const notes = formData.get("notes") as string;
+
+  const raidDate = new Date(raidDateStr);
+
+  // FIFO: find craft batches with remaining stock, oldest first
+  const batches = await prisma.craftBatch.findMany({
+    where: {
+      itemType,
+      itemName: itemName ?? undefined,
+      ...(crafterId ? { crafterId } : {}),
     },
+    include: { usageLines: { select: { quantity: true } } },
+    orderBy: { craftedAt: "asc" },
   });
 
+  const available = batches
+    .map((b) => ({
+      id: b.id,
+      costPerUnit: b.costPerUnit,
+      remaining: b.quantity - b.usageLines.reduce((s, l) => s + l.quantity, 0),
+    }))
+    .filter((b) => b.remaining > 0);
+
+  // Build attribution lines
+  let toAssign = quantityUsed;
+  const lines: { batchId: string; quantity: number; costPerUnit: number }[] = [];
+
+  for (const batch of available) {
+    if (toAssign <= 0) break;
+    const take = Math.min(toAssign, batch.remaining);
+    lines.push({ batchId: batch.id, quantity: take, costPerUnit: batch.costPerUnit });
+    toAssign -= take;
+  }
+
+  await prisma.$transaction(async (tx) => {
+    const log = await tx.usageLog.create({
+      data: {
+        raidDate,
+        itemType,
+        itemName,
+        quantityUsed,
+        notes: notes || null,
+      },
+    });
+
+    if (lines.length > 0) {
+      await tx.usageLine.createMany({
+        data: lines.map((l) => ({ ...l, usageLogId: log.id })),
+      });
+    }
+  });
+
+  revalidatePath("/usage");
   revalidatePath("/consumables");
+  revalidatePath("/payments");
+  revalidatePath("/");
+  redirect("/usage");
+}
+
+export async function deleteUsageLog(id: string) {
+  await prisma.usageLog.delete({ where: { id } });
+  revalidatePath("/usage");
+  revalidatePath("/consumables");
+  revalidatePath("/payments");
   revalidatePath("/");
 }
 
-export async function updateUseStatus(useId: string, status: ItemStatus) {
-  const use = await prisma.consumableUse.update({
-    where: { id: useId },
-    data: {
-      status,
-      usedAt: status === "USED" ? new Date() : null,
-    },
+// ---- Payment actions ----
+
+export async function updateBatchPaidAmount(batchId: string, amount: number) {
+  await prisma.craftBatch.update({
+    where: { id: batchId },
+    data: { paidAmount: amount },
   });
 
-  const allUses = await prisma.consumableUse.findMany({
-    where: { entryId: use.entryId },
-  });
-
-  const allUsed = allUses.every((u) => u.status === "USED");
-  const allWasted = allUses.every((u) => u.status === "WASTED");
-  const entryStatus: ItemStatus = allUsed ? "USED" : allWasted ? "WASTED" : "AVAILABLE";
-
-  await prisma.consumableEntry.update({
-    where: { id: use.entryId },
-    data: { status: entryStatus },
-  });
-
+  revalidatePath("/payments");
   revalidatePath("/consumables");
   revalidatePath("/");
 }
@@ -138,28 +171,4 @@ export async function createPriceConfig(formData: FormData) {
   revalidatePath("/prices");
   revalidatePath("/consumables/new");
   redirect("/prices");
-}
-
-// ---- Payment actions ----
-
-export async function createPayment(formData: FormData) {
-  const crafterId = formData.get("crafterId") as string;
-  const amount = parseFloat(formData.get("amount") as string);
-  const notes = formData.get("notes") as string;
-  const paidAtStr = formData.get("paidAt") as string;
-
-  const paidAt = paidAtStr ? new Date(paidAtStr) : new Date();
-
-  await prisma.payment.create({
-    data: {
-      crafterId,
-      amount,
-      notes: notes || null,
-      paidAt,
-    },
-  });
-
-  revalidatePath("/payments");
-  revalidatePath("/");
-  redirect("/payments");
 }

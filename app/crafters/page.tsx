@@ -3,45 +3,44 @@ export const dynamic = "force-dynamic";
 import prisma from "@/lib/prisma";
 import { createCrafter } from "@/lib/actions";
 
-function formatGold(amount: number) {
-  return `${amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
+function formatGold(n: number) {
+  return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
 }
 
 export default async function CraftersPage() {
   const crafters = await prisma.crafter.findMany({
     orderBy: { characterName: "asc" },
     include: {
-      entries: true,
-      payments: true,
-      _count: { select: { entries: true, payments: true } },
+      batches: {
+        include: { usageLines: { select: { quantity: true, costPerUnit: true } } },
+      },
     },
   });
 
   const crafterStats = crafters.map((crafter) => {
-    const totalCrafted = crafter.entries.reduce((sum, e) => sum + e.totalCost, 0);
-    const totalPaid = crafter.payments.reduce((sum, p) => sum + p.amount, 0);
-    const availableCost = crafter.entries
-      .filter((e) => e.status === "AVAILABLE")
-      .reduce((sum, e) => sum + e.totalCost, 0);
-    const totalOwed = Math.max(0, availableCost - totalPaid);
-    return { ...crafter, totalCrafted, totalPaid, totalOwed };
+    const totalCraftedValue = crafter.batches.reduce(
+      (s, b) => s + b.quantity * b.costPerUnit,
+      0
+    );
+    const totalOwed = crafter.batches.reduce((s, b) => {
+      const usedValue = b.usageLines.reduce((ls, l) => ls + l.quantity * l.costPerUnit, 0);
+      return s + usedValue - b.paidAmount;
+    }, 0);
+    const totalPaid = crafter.batches.reduce((s, b) => s + b.paidAmount, 0);
+    return { ...crafter, totalCraftedValue, totalOwed: Math.max(0, totalOwed), totalPaid, batchCount: crafter.batches.length };
   });
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-yellow-400">Crafters</h1>
-        <p className="text-zinc-400 mt-1">
-          Manage the guild&apos;s consumable crafters
-        </p>
+        <p className="text-zinc-400 mt-1">Manage the guild&apos;s consumable crafters</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Add crafter form */}
         <div>
-          <h2 className="text-xl font-semibold text-zinc-100 mb-4">
-            Add Crafter
-          </h2>
+          <h2 className="text-xl font-semibold text-zinc-100 mb-4">Add Crafter</h2>
           <form
             action={createCrafter}
             className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4"
@@ -58,7 +57,7 @@ export default async function CraftersPage() {
                 name="characterName"
                 type="text"
                 required
-                placeholder="e.g. Shadowmend"
+                placeholder="e.g. BNOC"
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
               />
             </div>
@@ -74,7 +73,7 @@ export default async function CraftersPage() {
                 name="name"
                 type="text"
                 required
-                placeholder="e.g. Alex"
+                placeholder="e.g. BNOC"
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
               />
             </div>
@@ -91,9 +90,7 @@ export default async function CraftersPage() {
         <div>
           <h2 className="text-xl font-semibold text-zinc-100 mb-4">
             Current Crafters{" "}
-            <span className="text-sm font-normal text-zinc-400">
-              ({crafters.length})
-            </span>
+            <span className="text-sm font-normal text-zinc-400">({crafters.length})</span>
           </h2>
           {crafterStats.length === 0 ? (
             <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
@@ -116,34 +113,28 @@ export default async function CraftersPage() {
                     <div className="text-right">
                       <p
                         className={`text-xl font-bold ${
-                          crafter.totalOwed > 0
-                            ? "text-yellow-400"
-                            : "text-green-400"
+                          crafter.totalOwed > 0 ? "text-yellow-400" : "text-green-400"
                         }`}
                       >
                         {formatGold(crafter.totalOwed)}
                       </p>
-                      <p className="text-zinc-500 text-xs">owed</p>
+                      <p className="text-zinc-500 text-xs">outstanding</p>
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-zinc-800 grid grid-cols-3 gap-3 text-sm">
                     <div>
-                      <p className="text-zinc-500">Entries</p>
-                      <p className="text-zinc-300 font-medium">
-                        {crafter._count.entries}
-                      </p>
+                      <p className="text-zinc-500">Batches</p>
+                      <p className="text-zinc-300 font-medium">{crafter.batchCount}</p>
                     </div>
                     <div>
-                      <p className="text-zinc-500">Total Crafted</p>
+                      <p className="text-zinc-500">Crafted Value</p>
                       <p className="text-zinc-300 font-medium">
-                        {formatGold(crafter.totalCrafted)}
+                        {formatGold(crafter.totalCraftedValue)}
                       </p>
                     </div>
                     <div>
                       <p className="text-zinc-500">Total Paid</p>
-                      <p className="text-zinc-300 font-medium">
-                        {formatGold(crafter.totalPaid)}
-                      </p>
+                      <p className="text-zinc-300 font-medium">{formatGold(crafter.totalPaid)}</p>
                     </div>
                   </div>
                 </div>
