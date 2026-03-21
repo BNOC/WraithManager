@@ -51,23 +51,24 @@ export default async function UsagePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-yellow-400">Usage Log</h1>
-          <p className="text-zinc-400 mt-1">
+          <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Usage Log</p>
+          <h1 className="text-3xl font-bold text-ink">Usage</h1>
+          <p className="text-ink-dim mt-1">
             {nightEntries.length} raid night{nightEntries.length !== 1 ? "s" : ""} · {totalUsed} items used · {formatGold(totalValue)} total value
           </p>
         </div>
         <Link
           href="/usage/new"
-          className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-4 py-2 rounded-lg transition-colors text-sm"
+          className="bg-primary hover:opacity-90 text-white font-semibold px-4 py-2 rounded-xl transition-opacity text-sm"
         >
           + Log Raid Night
         </Link>
       </div>
 
       {logs.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <p className="text-zinc-400 text-lg">No usage logged yet.</p>
-          <Link href="/usage/new" className="mt-4 inline-block text-yellow-400 hover:text-yellow-300">
+        <div className="bg-surface border border-rim rounded-2xl p-12 text-center shadow-lg shadow-black/30">
+          <p className="text-ink-dim text-lg">No usage logged yet.</p>
+          <Link href="/usage/new" className="mt-4 inline-block text-primary hover:opacity-80">
             Log first raid night →
           </Link>
         </div>
@@ -81,21 +82,21 @@ export default async function UsagePage() {
             const firstLog = nightLogs[0];
 
             return (
-              <div key={dateKey} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+              <div key={dateKey} className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
                 {/* Night header */}
-                <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-800/30 flex items-center justify-between gap-3 flex-wrap">
+                <div className="px-4 py-3 border-b border-rim bg-surface-hi/40 flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
                     <RaidDayBadge date={firstLog.raidDate} />
-                    <span className="text-zinc-100 font-semibold">{formatDate(firstLog.raidDate)}</span>
-                    <span className="text-zinc-500 text-sm">{nightLogs.length} item{nightLogs.length !== 1 ? "s" : ""}</span>
+                    <span className="text-ink font-semibold">{formatDate(firstLog.raidDate)}</span>
+                    <span className="text-ink-dim text-sm">{nightLogs.length} item{nightLogs.length !== 1 ? "s" : ""}</span>
                   </div>
-                  <span className="text-yellow-400 font-medium text-sm">
+                  <span className="text-primary font-medium text-sm">
                     {nightValue > 0 ? formatGold(nightValue) : "—"}
                   </span>
                 </div>
 
                 {/* Individual items for this night */}
-                <div className="divide-y divide-zinc-800/50">
+                <div className="divide-y divide-rim/50">
                   {nightLogs.map((log) => {
                     const lineValue = log.lines.reduce(
                       (s, l) => s + l.quantity * l.costPerUnit,
@@ -110,23 +111,23 @@ export default async function UsagePage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <ItemTypeBadge type={log.itemType} />
                             {log.itemName && (
-                              <span className="text-zinc-300 text-sm font-medium">{log.itemName}</span>
+                              <span className="text-ink text-sm font-medium">{log.itemName}</span>
                             )}
-                            <span className="text-zinc-500 text-sm">×{log.quantityUsed}</span>
+                            <span className="text-ink-dim text-sm">×{log.quantityUsed}</span>
                             {log.notes && (
-                              <span className="text-zinc-500 text-xs bg-zinc-800 border border-zinc-700 px-1.5 py-0.5 rounded">
+                              <span className="bg-surface-hi border border-rim text-ink-dim text-xs px-1.5 py-0.5 rounded-lg">
                                 {log.notes}
                               </span>
                             )}
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-zinc-400 text-sm">
+                            <span className="text-ink-dim text-sm">
                               {lineValue > 0 ? formatGold(lineValue) : "—"}
                             </span>
                             <form action={deleteUsageLog.bind(null, log.id)}>
                               <button
                                 type="submit"
-                                className="text-xs text-zinc-600 hover:text-red-400 transition-colors"
+                                className="text-xs text-ink-faint hover:text-red-400 transition-colors"
                               >
                                 Delete
                               </button>
@@ -137,28 +138,28 @@ export default async function UsagePage() {
                         {/* FIFO attribution lines */}
                         <div className="space-y-0.5 pl-2">
                           {log.lines.length === 0 ? (
-                            <p className="text-zinc-600 text-xs">No batch stock was available at time of logging.</p>
+                            <p className="text-ink-faint text-xs">No batch stock was available at time of logging.</p>
                           ) : (
                             log.lines.map((line) => (
                               <div key={line.id} className="flex items-center justify-between text-xs">
-                                <span className="text-zinc-500">
+                                <span className="text-ink-dim">
                                   ·{" "}
-                                  <span className="text-zinc-400">{line.quantity}</span> from{" "}
-                                  <span className="text-zinc-300 font-medium">
+                                  <span className="text-ink-dim">{line.quantity}</span> from{" "}
+                                  <span className="text-ink font-medium">
                                     {line.batch.crafter.characterName}
                                   </span>{" "}
-                                  <span className="text-zinc-600">
+                                  <span className="text-ink-faint">
                                     (crafted {formatDate(line.batch.craftedAt)})
                                   </span>
                                 </span>
-                                <span className="text-zinc-600">
+                                <span className="text-ink-faint">
                                   {formatGold(line.costPerUnit)}/unit = {formatGold(line.quantity * line.costPerUnit)}
                                 </span>
                               </div>
                             ))
                           )}
                           {unattributed > 0 && (
-                            <p className="text-amber-600 text-xs">
+                            <p className="text-amber-400 text-xs">
                               ⚠ {unattributed} unit{unattributed !== 1 ? "s" : ""} unattributed — no matching batch stock
                             </p>
                           )}

@@ -70,8 +70,8 @@ export default async function PricesPage({ searchParams }: PageProps) {
   const today = new Date().toISOString().slice(0, 10);
 
   const inputClass =
-    "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
-  const labelClass = "block text-sm font-medium text-zinc-300 mb-1.5";
+    "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
+  const labelClass = "block text-sm font-medium text-ink mb-1.5";
 
   function sortUrl(col: string) {
     const newDir = sort === col && dir === "desc" ? "asc" : "desc";
@@ -79,35 +79,36 @@ export default async function PricesPage({ searchParams }: PageProps) {
   }
 
   function sortIndicator(col: string) {
-    if (sort !== col) return <span className="text-zinc-700 ml-1">↕</span>;
-    return <span className="text-yellow-400 ml-1">{dir === "asc" ? "↑" : "↓"}</span>;
+    if (sort !== col) return <span className="text-ink-faint ml-1">↕</span>;
+    return <span className="text-primary ml-1">{dir === "asc" ? "↑" : "↓"}</span>;
   }
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-yellow-400">Price Config</h1>
-        <p className="text-zinc-400 mt-1">
+        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Price Config</p>
+        <h1 className="text-3xl font-bold text-ink">Prices</h1>
+        <p className="text-ink-dim mt-1">
           Set default material costs per item type. Used to pre-fill the log form and track cost history over the season.
         </p>
       </div>
 
       {/* Current prices summary */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+      <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
+        <div className="px-4 py-3 border-b border-rim">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">
             Current Defaults
-          </h2>
+          </p>
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium">Type</th>
-              <th className="text-right px-4 py-3 text-zinc-400 font-medium">Price / Unit</th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden sm:table-cell">
+            <tr className="border-b border-rim bg-surface/50">
+              <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Type</th>
+              <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Price / Unit</th>
+              <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">
                 Effective From
               </th>
-              <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden md:table-cell">
+              <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden md:table-cell">
                 Notes
               </th>
             </tr>
@@ -116,23 +117,23 @@ export default async function PricesPage({ searchParams }: PageProps) {
             {ALL_TYPES.map(({ value, label }) => {
               const config = currentPrices.get(value);
               return (
-                <tr key={value} className="border-b border-zinc-800/50">
+                <tr key={value} className="border-b border-rim/50">
                   <td className="px-4 py-3">
                     <ItemTypeBadge type={value} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     {config ? (
-                      <span className="text-yellow-400 font-medium">
+                      <span className="text-primary font-medium">
                         {formatGold(config.price)}
                       </span>
                     ) : (
-                      <span className="text-zinc-600 italic">not set</span>
+                      <span className="text-ink-faint italic">not set</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 text-xs hidden sm:table-cell">
+                  <td className="px-4 py-3 text-ink-dim text-xs hidden sm:table-cell">
                     {config ? formatDate(config.effectiveDate) : "—"}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 text-xs hidden md:table-cell">
+                  <td className="px-4 py-3 text-ink-dim text-xs hidden md:table-cell">
                     {config?.notes ?? "—"}
                   </td>
                 </tr>
@@ -143,8 +144,8 @@ export default async function PricesPage({ searchParams }: PageProps) {
       </div>
 
       {/* Set new price form */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-zinc-100 mb-4">Set New Price</h2>
+      <div className="bg-surface border border-rim rounded-2xl p-6 shadow-lg shadow-black/30">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-4">Set New Price</p>
         <form action={createPriceConfig} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
@@ -191,7 +192,7 @@ export default async function PricesPage({ searchParams }: PageProps) {
           <div>
             <label htmlFor="notes" className={labelClass}>
               Notes{" "}
-              <span className="text-zinc-500 font-normal">
+              <span className="text-ink-dim font-normal">
                 (optional — e.g. "start of season prices")
               </span>
             </label>
@@ -205,7 +206,7 @@ export default async function PricesPage({ searchParams }: PageProps) {
           </div>
           <button
             type="submit"
-            className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-6 py-2 rounded-lg transition-colors"
+            className="bg-primary hover:opacity-90 text-white font-semibold px-6 py-2 rounded-xl transition-opacity"
           >
             Save Price
           </button>
@@ -214,51 +215,51 @@ export default async function PricesPage({ searchParams }: PageProps) {
 
       {/* Full history — sortable */}
       {allConfigs.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-800">
-            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wide">
+        <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
+          <div className="px-4 py-3 border-b border-rim">
+            <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">
               Price History
-            </h2>
+            </p>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900/50">
+              <tr className="border-b border-rim bg-surface/50">
                 <th className="text-left px-4 py-3 font-medium">
-                  <Link href={sortUrl("type")} className="text-zinc-400 hover:text-zinc-200 flex items-center gap-1">
+                  <Link href={sortUrl("type")} className="text-ink-dim hover:text-ink flex items-center gap-1">
                     Type{sortIndicator("type")}
                   </Link>
                 </th>
                 <th className="text-right px-4 py-3 font-medium">
-                  <Link href={sortUrl("price")} className="text-zinc-400 hover:text-zinc-200 flex items-center justify-end gap-1">
+                  <Link href={sortUrl("price")} className="text-ink-dim hover:text-ink flex items-center justify-end gap-1">
                     Price / Unit{sortIndicator("price")}
                   </Link>
                 </th>
                 <th className="text-left px-4 py-3 font-medium">
-                  <Link href={sortUrl("date")} className="text-zinc-400 hover:text-zinc-200 flex items-center gap-1">
+                  <Link href={sortUrl("date")} className="text-ink-dim hover:text-ink flex items-center gap-1">
                     Effective From{sortIndicator("date")}
                   </Link>
                 </th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden md:table-cell">
+                <th className="text-left px-4 py-3 text-ink-dim font-medium hidden md:table-cell">
                   Notes
                 </th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((c) => (
-                <tr key={c.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/20">
+                <tr key={c.id} className="border-b border-rim/50 hover:bg-surface-hi/20">
                   <td className="px-4 py-3">
                     <ItemTypeBadge type={c.itemType} />
                     {currentPrices.get(c.itemType)?.id === c.id && (
                       <span className="ml-2 text-xs text-green-500">current</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right text-yellow-400 font-medium">
+                  <td className="px-4 py-3 text-right text-primary font-medium">
                     {formatGold(c.price)}
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">
+                  <td className="px-4 py-3 text-ink-dim text-xs">
                     {formatDate(c.effectiveDate)}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 text-xs hidden md:table-cell">
+                  <td className="px-4 py-3 text-ink-dim text-xs hidden md:table-cell">
                     {c.notes ?? "—"}
                   </td>
                 </tr>

@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     }),
     prisma.craftBatch.findMany({
       orderBy: { craftedAt: "desc" },
-      take: 6,
+      take: 5,
       include: { crafter: true },
     }),
     prisma.usageLog.findMany({
@@ -39,183 +39,203 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  // Inventory: group by itemType + itemName, sum remaining
+  const crafterSummaries = crafters.map((crafter) => {
+    const totalOwed = crafter.batches.reduce((s, b) => s + b.quantity * b.costPerUnit, 0);
+    const totalPaid = crafter.batches.reduce((s, b) => s + b.paidAmount, 0);
+    const outstanding = Math.max(0, totalOwed - totalPaid);
+    return { ...crafter, totalOwed, totalPaid, outstanding };
+  });
+
+  const grandOutstanding = crafterSummaries.reduce((s, c) => s + c.outstanding, 0);
+
+  // Inventory
   const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number }>();
   for (const b of allBatches) {
     const key = `${b.itemType}::${b.itemName}`;
     const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
-    const remaining = b.quantity - used;
-    if (!inventoryMap.has(key)) {
-      inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0 });
-    }
+    if (!inventoryMap.has(key)) inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0 });
     const entry = inventoryMap.get(key)!;
-    entry.remaining += remaining;
+    entry.remaining += b.quantity - used;
     entry.total += b.quantity;
   }
-  // Sort by a fixed type order then name
-  const TYPE_ORDER: Record<string, number> = {
-    FLASK_CAULDRON: 0, POTION_CAULDRON: 1, FEAST: 2, VANTUS_RUNE: 3, OTHER: 4,
-  };
+  const TYPE_ORDER: Record<string, number> = { FLASK_CAULDRON: 0, POTION_CAULDRON: 1, FEAST: 2, VANTUS_RUNE: 3, OTHER: 4 };
   const inventory = [...inventoryMap.values()].sort(
     (a, b) => (TYPE_ORDER[a.itemType] ?? 9) - (TYPE_ORDER[b.itemType] ?? 9) || a.itemName.localeCompare(b.itemName)
   );
 
-  const crafterSummaries = crafters.map((crafter) => {
-    const totalOwed = Math.max(
-      0,
-      crafter.batches.reduce((s, b) => {
-        const usedValue = b.usageLines.reduce((ls, l) => ls + l.quantity * l.costPerUnit, 0);
-        return s + usedValue - b.paidAmount;
-      }, 0)
-    );
-    const totalPaid = crafter.batches.reduce((s, b) => s + b.paidAmount, 0);
-    return { ...crafter, totalOwed, totalPaid };
-  });
-
-  const grandOwed = crafterSummaries.reduce((s, c) => s + c.totalOwed, 0);
-
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-yellow-400">Dashboard</h1>
-        <p className="text-zinc-400 mt-1">Guild consumables overview — Raids: Wed, Thu, Mon</p>
+      {/* Page header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Overview</p>
+          <h1 className="text-3xl font-bold text-ink">Dashboard</h1>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/consumables/new"
+            className="bg-primary hover:opacity-90 text-white font-semibold px-4 py-2 rounded-xl transition-opacity text-sm"
+          >
+            + Log Craft
+          </Link>
+          <Link
+            href="/usage/new"
+            className="bg-surface border border-rim hover:border-primary/40 text-ink font-medium px-4 py-2 rounded-xl transition-colors text-sm"
+          >
+            + Log Raid Night
+          </Link>
+        </div>
       </div>
 
-      {/* Quick stats */}
+      {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <p className="text-zinc-400 text-sm">Total Outstanding</p>
-          <p className="text-2xl font-bold text-yellow-400 mt-1">{formatGold(grandOwed)}</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <p className="text-zinc-400 text-sm">Craft Batches</p>
-          <p className="text-2xl font-bold text-zinc-100 mt-1">{batchCount}</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <p className="text-zinc-400 text-sm">Usage Sessions</p>
-          <p className="text-2xl font-bold text-zinc-100 mt-1">{usageCount}</p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-          <p className="text-zinc-400 text-sm">Crafters</p>
-          <p className="text-2xl font-bold text-zinc-100 mt-1">{crafters.length}</p>
-        </div>
+        {[
+          { label: "Outstanding", value: formatGold(grandOutstanding), accent: true },
+          { label: "Craft Batches", value: batchCount.toString(), accent: false },
+          { label: "Usage Sessions", value: usageCount.toString(), accent: false },
+          { label: "Crafters", value: crafters.length.toString(), accent: false },
+        ].map(({ label, value, accent }) => (
+          <div key={label} className="bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30">
+            <p className="text-ink-faint text-xs font-medium uppercase tracking-wider">{label}</p>
+            <p className={`text-2xl font-bold mt-2 ${accent ? "text-primary" : "text-ink"}`}>{value}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Current inventory */}
-      <div>
-        <h2 className="text-xl font-semibold text-zinc-100 mb-4">Current Inventory</h2>
-        {inventory.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 text-center">
-            <p className="text-zinc-500 text-sm">No craft batches logged yet.</p>
-          </div>
-        ) : (
+      {/* Inventory */}
+      {inventory.length > 0 && (
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-3">Current Inventory</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {inventory.map((item) => {
               const pct = item.total > 0 ? item.remaining / item.total : 0;
-              const color =
+              const [numColor, borderAccent] =
                 item.remaining === 0
-                  ? "text-red-400"
+                  ? ["text-red-400", "border-red-900/40"]
                   : pct <= 0.25
-                  ? "text-amber-400"
-                  : "text-green-400";
-              const border =
-                item.remaining === 0
-                  ? "border-red-900/50"
-                  : pct <= 0.25
-                  ? "border-amber-900/50"
-                  : "border-zinc-800";
+                  ? ["text-amber-400", "border-amber-900/40"]
+                  : ["text-emerald-400", "border-rim"];
               return (
-                <div
-                  key={`${item.itemType}::${item.itemName}`}
-                  className={`bg-zinc-900 border ${border} rounded-lg p-4`}
-                >
+                <div key={`${item.itemType}::${item.itemName}`} className={`bg-surface border ${borderAccent} rounded-2xl p-4 shadow-lg shadow-black/20`}>
                   <ItemTypeBadge type={item.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
-                  {item.itemName && (
-                    <p className="text-zinc-400 text-xs mt-1 truncate">{item.itemName}</p>
-                  )}
-                  <p className={`text-2xl font-bold mt-2 ${color}`}>{item.remaining}</p>
-                  <p className="text-zinc-600 text-xs mt-0.5">of {item.total} crafted</p>
+                  {item.itemName && <p className="text-ink-faint text-xs mt-1.5 truncate">{item.itemName}</p>}
+                  <p className={`text-3xl font-bold mt-2 ${numColor}`}>{item.remaining}</p>
+                  <p className="text-ink-faint text-xs mt-0.5">of {item.total} crafted</p>
                 </div>
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Crafter balances */}
-      <div>
-        <h2 className="text-xl font-semibold text-zinc-100 mb-4">Crafter Balances</h2>
-        {crafterSummaries.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">No crafters yet.</p>
-            <Link href="/crafters" className="mt-3 inline-block text-yellow-400 hover:text-yellow-300 text-sm">
-              Add crafters →
-            </Link>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-3">
-            {crafterSummaries.map((c) => (
-              <div key={c.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-                <div className="flex items-start justify-between">
-                  <p className="font-semibold text-zinc-100">{c.characterName}</p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Crafter balances */}
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-3">Crafter Balances</h2>
+          {crafterSummaries.length === 0 ? (
+            <div className="bg-surface border border-rim rounded-2xl p-8 text-center">
+              <p className="text-ink-dim text-sm">No crafters yet.</p>
+              <Link href="/crafters" className="mt-2 inline-block text-primary hover:opacity-80 text-sm">
+                Add crafters →
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {crafterSummaries.map((c) => (
+                <div key={c.id} className="bg-surface border border-rim rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg shadow-black/20">
+                  <div>
+                    <p className="font-semibold text-ink">{c.characterName}</p>
+                    <p className="text-ink-faint text-xs mt-0.5">Paid: {formatGold(c.totalPaid)}</p>
+                  </div>
                   <div className="text-right">
-                    <p className={`text-lg font-bold ${c.totalOwed > 0 ? "text-yellow-400" : "text-green-400"}`}>
-                      {formatGold(c.totalOwed)}
+                    <p className={`text-lg font-bold ${c.outstanding > 0 ? "text-primary" : "text-emerald-400"}`}>
+                      {formatGold(c.outstanding)}
                     </p>
-                    <p className="text-zinc-500 text-xs">outstanding</p>
+                    <p className="text-ink-faint text-xs">outstanding</p>
                   </div>
                 </div>
-                <p className="text-zinc-500 text-xs mt-2">Paid: {formatGold(c.totalPaid)}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent usage */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Recent Usage</h2>
+            <Link href="/usage" className="text-primary hover:opacity-80 text-xs transition-opacity">View all →</Link>
           </div>
-        )}
+          {recentUsage.length === 0 ? (
+            <div className="bg-surface border border-rim rounded-2xl p-8 text-center">
+              <p className="text-ink-dim text-sm">No usage logged yet.</p>
+              <Link href="/usage/new" className="mt-2 inline-block text-primary hover:opacity-80 text-sm">
+                Log raid night →
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recentUsage.map((log) => {
+                const value = log.lines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
+                return (
+                  <div key={log.id} className="bg-surface border border-rim rounded-2xl px-4 py-3 flex items-center justify-between gap-2 shadow-lg shadow-black/20">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <RaidDayBadge date={log.raidDate} />
+                      <span className="text-ink-dim text-xs">{formatDate(log.raidDate)}</span>
+                      <ItemTypeBadge type={log.itemType} />
+                      {log.itemName && <span className="text-ink-dim text-xs truncate">{log.itemName}</span>}
+                      <span className="text-ink-faint text-xs">×{log.quantityUsed}</span>
+                    </div>
+                    <span className="text-primary font-medium text-sm shrink-0">{value > 0 ? formatGold(value) : "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Recent craft batches */}
+      {/* Recent crafts */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-zinc-100">Recent Crafts</h2>
-          <Link href="/consumables" className="text-yellow-400 hover:text-yellow-300 text-sm">
-            View all →
-          </Link>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Recent Crafts</h2>
+          <Link href="/consumables" className="text-primary hover:opacity-80 text-xs transition-opacity">View all →</Link>
         </div>
         {recentBatches.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">No craft batches yet.</p>
-            <Link href="/consumables/new" className="mt-3 inline-block text-yellow-400 hover:text-yellow-300 text-sm">
+          <div className="bg-surface border border-rim rounded-2xl p-8 text-center">
+            <p className="text-ink-dim text-sm">No craft batches yet.</p>
+            <Link href="/consumables/new" className="mt-2 inline-block text-primary hover:opacity-80 text-sm">
               Log a craft →
             </Link>
           </div>
         ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left px-4 py-3 text-zinc-400 font-medium">Item</th>
-                  <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden sm:table-cell">Crafter</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Qty</th>
-                  <th className="text-right px-4 py-3 text-zinc-400 font-medium">Value</th>
-                  <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden md:table-cell">Date</th>
+                <tr className="border-b border-rim">
+                  <th className="text-left px-5 py-3 text-ink-faint text-xs font-semibold uppercase tracking-wider">Item</th>
+                  <th className="text-left px-5 py-3 text-ink-faint text-xs font-semibold uppercase tracking-wider hidden sm:table-cell">Crafter</th>
+                  <th className="text-right px-5 py-3 text-ink-faint text-xs font-semibold uppercase tracking-wider">Qty</th>
+                  <th className="text-right px-5 py-3 text-ink-faint text-xs font-semibold uppercase tracking-wider">Value</th>
+                  <th className="text-left px-5 py-3 text-ink-faint text-xs font-semibold uppercase tracking-wider hidden md:table-cell">Date</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-rim/50">
                 {recentBatches.map((b) => (
-                  <tr key={b.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-4 py-3">
+                  <tr key={b.id} className="hover:bg-surface-hi/50 transition-colors">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-zinc-100">{b.itemName}</span>
+                        <span className="text-ink font-medium">{b.itemName}</span>
                         <ItemTypeBadge type={b.itemType} />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-400 hidden sm:table-cell">{b.crafter.characterName}</td>
-                    <td className="px-4 py-3 text-right text-zinc-300">{b.quantity}</td>
-                    <td className="px-4 py-3 text-right text-yellow-400 font-medium">
-                      {formatGold(b.quantity * b.costPerUnit)}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-500 text-xs hidden md:table-cell">
-                      <RaidDayBadge date={b.craftedAt} />
-                      <span className="ml-1">{formatDate(b.craftedAt)}</span>
+                    <td className="px-5 py-3.5 text-ink-dim hidden sm:table-cell">{b.crafter.characterName}</td>
+                    <td className="px-5 py-3.5 text-right text-ink">{b.quantity}</td>
+                    <td className="px-5 py-3.5 text-right text-primary font-medium">{formatGold(b.quantity * b.costPerUnit)}</td>
+                    <td className="px-5 py-3.5 hidden md:table-cell">
+                      <div className="flex items-center gap-1.5">
+                        <RaidDayBadge date={b.craftedAt} />
+                        <span className="text-ink-dim text-xs">{formatDate(b.craftedAt)}</span>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -223,58 +243,6 @@ export default async function DashboardPage() {
             </table>
           </div>
         )}
-      </div>
-
-      {/* Recent usage */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-zinc-100">Recent Usage</h2>
-          <Link href="/usage" className="text-yellow-400 hover:text-yellow-300 text-sm">
-            View all →
-          </Link>
-        </div>
-        {recentUsage.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">No usage logged yet.</p>
-            <Link href="/usage/new" className="mt-3 inline-block text-yellow-400 hover:text-yellow-300 text-sm">
-              Log raid night usage →
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {recentUsage.map((log) => {
-              const value = log.lines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
-              return (
-                <div key={log.id} className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <RaidDayBadge date={log.raidDate} />
-                    <span className="text-zinc-300 text-sm">{formatDate(log.raidDate)}</span>
-                    <ItemTypeBadge type={log.itemType} />
-                    {log.itemName && <span className="text-zinc-400 text-sm">{log.itemName}</span>}
-                    <span className="text-zinc-500 text-sm">×{log.quantityUsed}</span>
-                  </div>
-                  <span className="text-yellow-400 font-medium text-sm">{value > 0 ? formatGold(value) : "—"}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Quick actions */}
-      <div className="flex gap-3 flex-wrap">
-        <Link
-          href="/consumables/new"
-          className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-4 py-2 rounded-lg transition-colors text-sm"
-        >
-          + Log Craft
-        </Link>
-        <Link
-          href="/usage/new"
-          className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-semibold px-4 py-2 rounded-lg transition-colors text-sm border border-zinc-700"
-        >
-          + Log Usage
-        </Link>
       </div>
     </div>
   );

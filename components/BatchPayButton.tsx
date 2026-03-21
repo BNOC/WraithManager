@@ -68,12 +68,12 @@ export function BatchPayButton({
           step="1"
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
-          className="w-24 bg-zinc-800 border border-zinc-600 rounded px-2 py-0.5 text-xs text-zinc-100 focus:outline-none focus:border-yellow-500"
+          className="w-24 bg-surface-hi border border-rim rounded-lg px-2 py-0.5 text-xs text-ink focus:outline-none focus:border-primary"
         />
         <button
           onClick={submitPartial}
           disabled={isPending}
-          className="text-xs bg-yellow-600 hover:bg-yellow-500 text-zinc-900 font-medium px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+          className="text-xs bg-primary hover:opacity-90 text-white font-medium px-2 py-0.5 rounded-lg transition-opacity disabled:opacity-50"
         >
           {isPending ? "…" : "Save"}
         </button>

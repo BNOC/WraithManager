@@ -19,10 +19,10 @@ const AUTO_NAMES: Partial<Record<string, string>> = {
 type DefaultPrices = Partial<Record<string, number>>;
 
 const selectClass =
-  "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
+  "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
 const inputClass =
-  "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
-const labelClass = "block text-sm font-medium text-zinc-300 mb-1.5";
+  "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
+const labelClass = "block text-sm font-medium text-ink-dim mb-1.5";
 
 export function ConsumableForm({
   crafters,
@@ -49,7 +49,7 @@ export function ConsumableForm({
   return (
     <form
       action={createCraftBatch}
-      className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-5"
+      className="bg-surface border border-rim rounded-2xl p-6 space-y-5 shadow-lg shadow-black/30"
     >
       {/* Type — first */}
       <div>
@@ -168,7 +168,7 @@ export function ConsumableForm({
       {/* Notes */}
       <div>
         <label htmlFor="notes" className={labelClass}>
-          Notes <span className="text-zinc-500 font-normal">(optional)</span>
+          Notes <span className="text-ink-faint font-normal">(optional)</span>
         </label>
         <textarea
           id="notes"
@@ -182,13 +182,13 @@ export function ConsumableForm({
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-6 py-2 rounded-lg transition-colors"
+          className="bg-primary hover:opacity-90 text-white font-semibold px-6 py-2.5 rounded-xl transition-opacity"
         >
           Save Craft
         </button>
         <Link
           href="/consumables"
-          className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-medium px-6 py-2 rounded-lg transition-colors border border-zinc-700"
+          className="bg-surface-hi hover:border-primary/40 text-ink font-medium px-6 py-2.5 rounded-xl transition-colors border border-rim"
         >
           Cancel
         </Link>

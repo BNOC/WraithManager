@@ -67,22 +67,23 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-yellow-400">Craft Log</h1>
-          <p className="text-zinc-400 mt-1">
+          <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Craft Log</p>
+          <h1 className="text-3xl font-bold text-ink">Consumables</h1>
+          <p className="text-ink-dim mt-1">
             {rows.length} batches · {formatGold(totalValue)} total value crafted
           </p>
         </div>
         <Link
           href="/consumables/new"
-          className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-4 py-2 rounded-lg transition-colors text-sm"
+          className="bg-primary hover:opacity-90 text-white font-semibold px-4 py-2 rounded-xl transition-opacity text-sm"
         >
           + Log Craft
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 flex flex-wrap gap-3 items-center">
-        <span className="text-zinc-400 text-sm font-medium">Filter:</span>
+      <div className="bg-surface border border-rim rounded-2xl p-4 flex flex-wrap gap-3 items-center shadow-lg shadow-black/30">
+        <span className="text-ink-dim text-sm font-medium">Filter:</span>
 
         <div className="flex gap-1 flex-wrap">
           <Link
@@ -102,7 +103,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
           ))}
         </div>
 
-        <span className="text-zinc-700">|</span>
+        <span className="text-ink-faint">|</span>
 
         <div className="flex gap-1 flex-wrap">
           {[
@@ -126,77 +127,77 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
 
       {/* Table */}
       {rows.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-12 text-center">
-          <p className="text-zinc-400 text-lg">No craft batches found.</p>
+        <div className="bg-surface border border-rim rounded-2xl p-12 text-center shadow-lg shadow-black/30">
+          <p className="text-ink-dim text-lg">No craft batches found.</p>
           <Link
             href="/consumables/new"
-            className="mt-4 inline-block text-yellow-400 hover:text-yellow-300"
+            className="mt-4 inline-block text-primary hover:opacity-80"
           >
             Log your first craft →
           </Link>
         </div>
       ) : (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium">Item</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden md:table-cell">Crafter</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium hidden sm:table-cell">Crafted</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium hidden sm:table-cell">Used</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium hidden sm:table-cell">Left</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium">Cost/Unit</th>
-                <th className="text-right px-4 py-3 text-zinc-400 font-medium">Owed</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden lg:table-cell">Payment</th>
-                <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden lg:table-cell">Date</th>
+              <tr className="border-b border-rim bg-surface/50">
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Item</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden md:table-cell">Crafter</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Crafted</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Used</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Left</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Cost/Unit</th>
+                <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Owed</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden lg:table-cell">Payment</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden lg:table-cell">Date</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="border-b border-zinc-800/50 hover:bg-zinc-800/20 transition-colors"
+                  className="border-b border-rim/50 hover:bg-surface-hi/20 transition-colors"
                 >
                   <td className="px-4 py-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-zinc-100 font-medium">{row.itemName}</span>
+                        <span className="text-ink font-medium">{row.itemName}</span>
                         <ItemTypeBadge type={row.itemType} />
                       </div>
                       {row.notes && (
-                        <p className="text-zinc-500 text-xs">{row.notes}</p>
+                        <p className="text-ink-dim text-xs">{row.notes}</p>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400 hidden md:table-cell">
+                  <td className="px-4 py-3 text-ink-dim hidden md:table-cell">
                     {row.crafter.characterName}
                   </td>
-                  <td className="px-4 py-3 text-right text-zinc-300 hidden sm:table-cell">
+                  <td className="px-4 py-3 text-right text-ink hidden sm:table-cell">
                     {row.quantity}
                   </td>
-                  <td className="px-4 py-3 text-right text-zinc-300 hidden sm:table-cell">
+                  <td className="px-4 py-3 text-right text-ink hidden sm:table-cell">
                     {row.usedQty > 0 ? (
                       <span className="text-blue-400">{row.usedQty}</span>
                     ) : (
-                      <span className="text-zinc-600">0</span>
+                      <span className="text-ink-faint">0</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right hidden sm:table-cell">
                     {row.remaining > 0 ? (
-                      <span className="text-zinc-300">{row.remaining}</span>
+                      <span className="text-ink">{row.remaining}</span>
                     ) : (
-                      <span className="text-zinc-600">0</span>
+                      <span className="text-ink-faint">0</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right text-zinc-400">
+                  <td className="px-4 py-3 text-right text-ink-dim">
                     {formatGold(row.costPerUnit)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <span className="text-yellow-400 font-medium">
+                    <span className="text-primary font-medium">
                       {formatGold(row.owedAmount)}
                     </span>
                     {row.remaining > 0 && (
-                      <p className="text-zinc-500 text-xs mt-0.5">
+                      <p className="text-ink-dim text-xs mt-0.5">
                         {row.remaining} unused
                       </p>
                     )}
@@ -208,7 +209,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                       status={row.paymentStatus}
                     />
                   </td>
-                  <td className="px-4 py-3 text-zinc-500 text-xs hidden lg:table-cell">
+                  <td className="px-4 py-3 text-ink-dim text-xs hidden lg:table-cell">
                     <RaidDayBadge date={row.craftedAt} />
                     <div className="mt-0.5">{formatDate(row.craftedAt)}</div>
                   </td>
@@ -231,7 +232,7 @@ function PaymentBadge({
   owedAmount: number;
   status: string;
 }) {
-  if (owedAmount === 0) return <span className="text-zinc-600 text-xs">Nothing owed</span>;
+  if (owedAmount === 0) return <span className="text-ink-faint text-xs">Nothing owed</span>;
   if (status === "paid")
     return (
       <span className="text-xs text-green-400 font-medium">✓ Paid</span>
@@ -242,15 +243,13 @@ function PaymentBadge({
         Part-paid ({Math.round((paidAmount / owedAmount) * 100)}%)
       </span>
     );
-  return <span className="text-xs text-zinc-500">Unpaid</span>;
+  return <span className="text-xs text-ink-dim">Unpaid</span>;
 }
 
 function filterClass(active: boolean) {
-  return `px-2 py-1 rounded text-xs font-medium transition-colors ${
-    active
-      ? "bg-yellow-500/20 text-yellow-400 border border-yellow-700"
-      : "bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700"
-  }`;
+  return active
+    ? "px-2.5 py-1 rounded-xl text-xs font-medium bg-primary/10 text-primary border border-primary/50"
+    : "px-2.5 py-1 rounded-xl text-xs font-medium bg-surface-hi text-ink-dim border border-rim hover:text-ink transition-colors";
 }
 
 function buildUrl(

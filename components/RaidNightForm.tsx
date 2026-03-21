@@ -34,9 +34,9 @@ const FEAST_OPTIONS = ["Primary Stat", "Secondary Stat"];
 const DEFAULT_NOTE_PRESETS = ["Split 1", "Split 2", "Mains"];
 
 const selectClass =
-  "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm";
+  "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
 const inputClass =
-  "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 text-sm";
+  "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
 
 type EntryState = {
   key: number;
@@ -149,8 +149,8 @@ export function RaidNightForm({
   return (
     <div className="space-y-6">
       {/* Date header */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
-        <label className="block text-sm font-medium text-zinc-300 mb-1.5">
+      <div className="bg-surface border border-rim rounded-2xl p-5">
+        <label className="block text-sm font-medium text-ink-dim mb-1.5">
           Raid Date <span className="text-red-400">*</span>
         </label>
         <input
@@ -182,7 +182,7 @@ export function RaidNightForm({
       <button
         type="button"
         onClick={addEntry}
-        className="w-full border border-dashed border-zinc-700 hover:border-zinc-500 text-zinc-500 hover:text-zinc-300 rounded-lg py-3 text-sm transition-colors"
+        className="w-full border border-dashed border-rim hover:border-ink-dim text-ink-faint hover:text-ink-dim rounded-xl py-3 text-sm transition-colors"
       >
         + Add Item
       </button>
@@ -190,9 +190,9 @@ export function RaidNightForm({
       {/* Note presets manager */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-zinc-600 text-xs">Custom note presets:</span>
+          <span className="text-ink-faint text-xs">Custom note presets:</span>
           {presets.map((p) => (
-            <span key={p.id} className="px-2 py-0.5 rounded text-xs bg-zinc-800 border border-zinc-700 text-zinc-500">
+            <span key={p.id} className="px-2 py-0.5 rounded-lg text-xs bg-surface-hi border border-rim text-ink-dim">
               {p.label}
             </span>
           ))}
@@ -205,20 +205,20 @@ export function RaidNightForm({
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPreset())}
                 placeholder="Preset label…"
                 autoFocus
-                className="bg-zinc-800 border border-zinc-600 rounded px-2 py-0.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 w-32"
+                className="bg-surface-hi border border-rim rounded-lg px-2 py-0.5 text-xs text-ink placeholder-ink-faint focus:outline-none focus:border-primary w-32"
               />
               <button
                 type="button"
                 onClick={handleAddPreset}
                 disabled={isAddingPreset || !newPresetLabel.trim()}
-                className="text-xs bg-yellow-600 hover:bg-yellow-500 text-zinc-900 font-medium px-2 py-0.5 rounded transition-colors disabled:opacity-50"
+                className="text-xs bg-primary hover:opacity-90 text-white font-medium px-2 py-0.5 rounded-lg transition-opacity disabled:opacity-50"
               >
                 {isAddingPreset ? "…" : "Add"}
               </button>
               <button
                 type="button"
                 onClick={() => { setShowAddPreset(false); setNewPresetLabel(""); }}
-                className="text-xs text-zinc-600 hover:text-zinc-400"
+                className="text-xs text-ink-faint hover:text-ink-dim"
               >
                 Cancel
               </button>
@@ -227,7 +227,7 @@ export function RaidNightForm({
             <button
               type="button"
               onClick={() => setShowAddPreset(true)}
-              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+              className="text-xs text-ink-faint hover:text-ink-dim transition-colors"
             >
               + add
             </button>
@@ -236,7 +236,7 @@ export function RaidNightForm({
             <button
               type="button"
               onClick={() => { setShowManagePresets((v) => !v); setEditingPresetId(null); }}
-              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors ml-1"
+              className="text-xs text-ink-faint hover:text-ink-dim transition-colors ml-1"
             >
               {showManagePresets ? "▲ hide" : "✎ manage"}
             </button>
@@ -244,7 +244,7 @@ export function RaidNightForm({
         </div>
 
         {showManagePresets && presets.length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg divide-y divide-zinc-800 overflow-hidden">
+          <div className="bg-surface border border-rim rounded-xl divide-y divide-rim overflow-hidden">
             {presets.map((p) => (
               <div key={p.id} className="flex items-center gap-2 px-3 py-2">
                 {editingPresetId === p.id ? (
@@ -266,7 +266,7 @@ export function RaidNightForm({
                         }
                       }}
                       autoFocus
-                      className="flex-1 bg-zinc-800 border border-zinc-600 rounded px-2 py-0.5 text-xs text-zinc-100 focus:outline-none focus:border-yellow-500"
+                      className="flex-1 bg-surface-hi border border-rim rounded-lg px-2 py-0.5 text-xs text-ink focus:outline-none focus:border-primary"
                     />
                     <button
                       type="button"
@@ -277,25 +277,25 @@ export function RaidNightForm({
                         setEditingPresetId(null);
                         startMutatePreset(() => updateNotePreset(p.id, label));
                       }}
-                      className="text-xs text-yellow-500 hover:text-yellow-400 font-medium transition-colors"
+                      className="text-xs text-primary hover:opacity-80 font-medium transition-opacity"
                     >
                       Save
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditingPresetId(null)}
-                      className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+                      className="text-xs text-ink-faint hover:text-ink-dim transition-colors"
                     >
                       Cancel
                     </button>
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 text-xs text-zinc-300">{p.label}</span>
+                    <span className="flex-1 text-xs text-ink">{p.label}</span>
                     <button
                       type="button"
                       onClick={() => { setEditingPresetId(p.id); setEditingPresetLabel(p.label); }}
-                      className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors"
+                      className="text-xs text-ink-faint hover:text-ink transition-colors"
                     >
                       Edit
                     </button>
@@ -305,7 +305,7 @@ export function RaidNightForm({
                         setPresets((prev) => prev.filter((x) => x.id !== p.id));
                         startMutatePreset(() => deleteNotePreset(p.id));
                       }}
-                      className="text-xs text-zinc-600 hover:text-red-400 transition-colors"
+                      className="text-xs text-ink-faint hover:text-red-400 transition-colors"
                     >
                       Remove
                     </button>
@@ -323,13 +323,13 @@ export function RaidNightForm({
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting || !canSubmit || !raidDate}
-          className="bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-primary hover:opacity-90 text-white font-semibold px-6 py-2.5 rounded-xl transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "Saving…" : `Log ${entries.length} Item${entries.length !== 1 ? "s" : ""}`}
         </button>
         <Link
           href="/usage"
-          className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-medium px-6 py-2 rounded-lg transition-colors border border-zinc-700"
+          className="bg-surface-hi hover:border-primary/40 text-ink font-medium px-6 py-2.5 rounded-xl transition-colors border border-rim"
         >
           Cancel
         </Link>
@@ -362,14 +362,14 @@ function EntryRow({
   const showNameInput = !autoName && entry.itemType !== "FEAST";
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+    <div className="bg-surface border border-rim rounded-2xl p-5 space-y-4 shadow-lg shadow-black/20">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-zinc-400 text-sm font-medium">Item {index + 1}</span>
+        <span className="text-ink-dim text-sm font-medium">Item {index + 1}</span>
         {canRemove && (
           <button
             type="button"
             onClick={onRemove}
-            className="text-xs text-zinc-600 hover:text-red-400 transition-colors"
+            className="text-xs text-ink-faint hover:text-red-400 transition-colors"
           >
             Remove
           </button>
@@ -379,7 +379,7 @@ function EntryRow({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Type */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
+          <label className="block text-xs font-medium text-ink-dim mb-1">
             Type <span className="text-red-400">*</span>
           </label>
           <select
@@ -398,12 +398,12 @@ function EntryRow({
         {/* Name — conditional */}
         {autoName ? (
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">Name</label>
-            <div className={`${inputClass} text-zinc-500 cursor-default`}>{autoName}</div>
+            <label className="block text-xs font-medium text-ink-dim mb-1">Name</label>
+            <div className={`${inputClass} text-ink-dim cursor-default`}>{autoName}</div>
           </div>
         ) : showNameDropdown ? (
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">
+            <label className="block text-xs font-medium text-ink-dim mb-1">
               Feast Type <span className="text-red-400">*</span>
             </label>
             <select
@@ -419,7 +419,7 @@ function EntryRow({
           </div>
         ) : (
           <div>
-            <label className="block text-xs font-medium text-zinc-400 mb-1">
+            <label className="block text-xs font-medium text-ink-dim mb-1">
               Item Name <span className="text-red-400">*</span>
             </label>
             <input
@@ -434,7 +434,7 @@ function EntryRow({
 
         {/* Quantity */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
+          <label className="block text-xs font-medium text-ink-dim mb-1">
             Quantity <span className="text-red-400">*</span>
           </label>
           <input
@@ -448,8 +448,8 @@ function EntryRow({
 
         {/* Crafter filter */}
         <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">
-            From Crafter <span className="text-zinc-600 font-normal">(optional)</span>
+          <label className="block text-xs font-medium text-ink-dim mb-1">
+            From Crafter <span className="text-ink-faint font-normal">(optional)</span>
           </label>
           <select
             value={entry.crafterId}
@@ -466,21 +466,21 @@ function EntryRow({
 
       {/* Stock info */}
       {(autoName || entry.itemName) && (
-        <div className="bg-zinc-800/50 border border-zinc-700/50 rounded px-3 py-2 text-xs">
+        <div className="bg-surface-hi border border-rim/50 rounded-xl px-3 py-2 text-xs">
           {stock.total > 0 ? (
-            <span className="text-zinc-400">
-              <span className="text-yellow-400 font-medium">{stock.total}</span> available
+            <span className="text-ink-dim">
+              <span className="text-primary font-medium">{stock.total}</span> available
               {stock.available.length > 1 && (
                 <span> across {stock.available.length} batches</span>
               )}
               {stock.available[0] && (
-                <span className="text-zinc-600">
+                <span className="text-ink-faint">
                   {" "}· oldest from {stock.available[0].crafter}
                 </span>
               )}
             </span>
           ) : (
-            <span className="text-zinc-600">No stock available</span>
+            <span className="text-ink-faint">No stock available</span>
           )}
         </div>
       )}
@@ -496,8 +496,8 @@ function EntryRow({
                 onClick={() => onUpdate({ notes: entry.notes === label ? "" : label })}
                 className={`px-2 py-0.5 rounded text-xs border transition-colors ${
                   entry.notes === label
-                    ? "bg-yellow-500/20 border-yellow-700 text-yellow-400"
-                    : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:text-zinc-200 hover:border-zinc-500"
+                    ? "bg-primary/10 border-primary/50 text-primary"
+                    : "bg-surface-hi border-rim text-ink-faint hover:text-ink hover:border-ink-faint"
                 }`}
               >
                 {label}

@@ -15,8 +15,8 @@ export function RaidDayBadge({ date }: { date: Date | null }) {
   if (!label) return null;
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-900/50 text-yellow-400 border border-yellow-700">
-      Raid: {label}
+    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/30">
+      {label}
     </span>
   );
 }

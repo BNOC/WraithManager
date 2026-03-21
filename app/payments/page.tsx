@@ -52,8 +52,9 @@ export default async function PaymentsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-yellow-400">Payments</h1>
-        <p className="text-zinc-400 mt-1">
+        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Payments</p>
+        <h1 className="text-3xl font-bold text-ink">Payments</h1>
+        <p className="text-ink-dim mt-1">
           Track what has been paid to each crafter for consumed items
         </p>
       </div>
@@ -61,12 +62,12 @@ export default async function PaymentsPage() {
       {/* Grand summary */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Total Owed", value: grandOwed, color: "text-yellow-400" },
+          { label: "Total Owed", value: grandOwed, color: "text-primary" },
           { label: "Total Paid", value: grandPaid, color: "text-green-400" },
-          { label: "Outstanding", value: grandOwed - grandPaid, color: grandOwed - grandPaid > 0 ? "text-red-400" : "text-zinc-400" },
+          { label: "Outstanding", value: grandOwed - grandPaid, color: grandOwed - grandPaid > 0 ? "text-red-400" : "text-ink-dim" },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3">
-            <p className="text-zinc-500 text-xs mb-1">{label}</p>
+          <div key={label} className="bg-surface border border-rim rounded-2xl px-4 py-3 shadow-lg shadow-black/30">
+            <p className="text-ink-faint text-xs mb-1">{label}</p>
             <p className={`text-xl font-bold ${color}`}>{formatGold(value)}</p>
           </div>
         ))}
@@ -74,19 +75,19 @@ export default async function PaymentsPage() {
 
       {/* Per-crafter sections */}
       {crafterStats.map((crafter) => (
-        <div key={crafter.id} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+        <div key={crafter.id} className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
           {/* Crafter header */}
-          <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+          <div className="px-4 py-3 border-b border-rim flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-4">
-              <h2 className="text-lg font-semibold text-zinc-100">{crafter.characterName}</h2>
+              <h2 className="text-lg font-semibold text-ink">{crafter.characterName}</h2>
               <div className="flex gap-3 text-sm">
-                <span className="text-zinc-500">
+                <span className="text-ink-dim">
                   Owed:{" "}
-                  <span className="text-yellow-400 font-medium">
+                  <span className="text-primary font-medium">
                     {formatGold(crafter.totalOwed)}
                   </span>
                 </span>
-                <span className="text-zinc-500">
+                <span className="text-ink-dim">
                   Paid:{" "}
                   <span className="text-green-400 font-medium">
                     {formatGold(crafter.totalPaid)}
@@ -109,49 +110,49 @@ export default async function PaymentsPage() {
 
           {/* Batch rows */}
           {crafter.batchRows.length === 0 ? (
-            <p className="px-4 py-4 text-zinc-600 text-sm">No craft batches.</p>
+            <p className="px-4 py-4 text-ink-faint text-sm">No craft batches.</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-zinc-800/50 bg-zinc-900/30">
-                  <th className="text-left px-4 py-2 text-zinc-500 font-medium text-xs">Date</th>
-                  <th className="text-left px-4 py-2 text-zinc-500 font-medium text-xs">Item</th>
-                  <th className="text-right px-4 py-2 text-zinc-500 font-medium text-xs hidden sm:table-cell">Crafted</th>
-                  <th className="text-right px-4 py-2 text-zinc-500 font-medium text-xs hidden sm:table-cell">Used</th>
-                  <th className="text-right px-4 py-2 text-zinc-500 font-medium text-xs">Owed</th>
-                  <th className="text-left px-4 py-2 text-zinc-500 font-medium text-xs">Payment</th>
+                <tr className="border-b border-rim/50 bg-surface/30">
+                  <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Date</th>
+                  <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Item</th>
+                  <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Crafted</th>
+                  <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint hidden sm:table-cell">Used</th>
+                  <th className="text-right px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Owed</th>
+                  <th className="text-left px-4 py-2 text-xs font-semibold uppercase tracking-wider text-ink-faint">Payment</th>
                 </tr>
               </thead>
               <tbody>
                 {crafter.batchRows.map((batch) => (
-                  <tr key={batch.id} className="border-b border-zinc-800/30 hover:bg-zinc-800/10">
-                    <td className="px-4 py-2.5 text-zinc-500 text-xs whitespace-nowrap">
+                  <tr key={batch.id} className="border-b border-rim/30 hover:bg-surface-hi/10">
+                    <td className="px-4 py-2.5 text-ink-dim text-xs whitespace-nowrap">
                       {formatDate(batch.craftedAt)}
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
                         <ItemTypeBadge type={batch.itemType} />
-                        <span className="text-zinc-300 text-xs">{batch.itemName}</span>
+                        <span className="text-ink text-xs">{batch.itemName}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400 text-xs hidden sm:table-cell">
+                    <td className="px-4 py-2.5 text-right text-ink-dim text-xs hidden sm:table-cell">
                       {batch.quantity} × {formatGold(batch.costPerUnit)}
                     </td>
-                    <td className="px-4 py-2.5 text-right text-zinc-400 text-xs hidden sm:table-cell">
+                    <td className="px-4 py-2.5 text-right text-ink-dim text-xs hidden sm:table-cell">
                       {batch.usedQty > 0 ? (
                         <span>
                           {batch.usedQty}/{batch.quantity}
                         </span>
                       ) : (
-                        <span className="text-zinc-600">0/{batch.quantity}</span>
+                        <span className="text-ink-faint">0/{batch.quantity}</span>
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-right">
-                      <span className="text-yellow-400 font-medium text-xs">
+                      <span className="text-primary font-medium text-xs">
                         {formatGold(batch.owedAmount)}
                       </span>
                       {batch.unusedQty > 0 && (
-                        <p className="text-zinc-600 text-xs mt-0.5">
+                        <p className="text-ink-faint text-xs mt-0.5">
                           {batch.unusedQty} unused
                         </p>
                       )}

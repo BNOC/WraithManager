@@ -30,25 +30,30 @@ export default async function CraftersPage() {
     return { ...crafter, totalCraftedValue, totalOwed: Math.max(0, totalOwed), totalPaid, batchCount: crafter.batches.length };
   });
 
+  const inputClass =
+    "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
+  const labelClass = "block text-sm font-medium text-ink mb-1.5";
+
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-yellow-400">Crafters</h1>
-        <p className="text-zinc-400 mt-1">Manage the guild&apos;s consumable crafters</p>
+        <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Crafters</p>
+        <h1 className="text-3xl font-bold text-ink">Crafters</h1>
+        <p className="text-ink-dim mt-1">Manage the guild&apos;s consumable crafters</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Add crafter form */}
         <div>
-          <h2 className="text-xl font-semibold text-zinc-100 mb-4">Add Crafter</h2>
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-4">Add Crafter</p>
           <form
             action={createCrafter}
-            className="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4"
+            className="bg-surface border border-rim rounded-2xl p-5 space-y-4 shadow-lg shadow-black/30"
           >
             <div>
               <label
                 htmlFor="characterName"
-                className="block text-sm font-medium text-zinc-300 mb-1.5"
+                className={labelClass}
               >
                 Character Name <span className="text-red-400">*</span>
               </label>
@@ -58,13 +63,13 @@ export default async function CraftersPage() {
                 type="text"
                 required
                 placeholder="e.g. BNOC"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
+                className={inputClass}
               />
             </div>
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-zinc-300 mb-1.5"
+                className={labelClass}
               >
                 Player Name <span className="text-red-400">*</span>
               </label>
@@ -74,12 +79,12 @@ export default async function CraftersPage() {
                 type="text"
                 required
                 placeholder="e.g. BNOC"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
+                className={inputClass}
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-yellow-500 hover:bg-yellow-400 text-zinc-900 font-semibold px-6 py-2.5 rounded-lg transition-colors"
+              className="bg-primary hover:opacity-90 text-white font-semibold px-6 py-2.5 rounded-xl transition-opacity w-full"
             >
               Add Crafter
             </button>
@@ -88,53 +93,53 @@ export default async function CraftersPage() {
 
         {/* Crafter list */}
         <div>
-          <h2 className="text-xl font-semibold text-zinc-100 mb-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-4">
             Current Crafters{" "}
-            <span className="text-sm font-normal text-zinc-400">({crafters.length})</span>
-          </h2>
+            <span className="text-ink-dim font-normal normal-case tracking-normal">({crafters.length})</span>
+          </p>
           {crafterStats.length === 0 ? (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-              <p className="text-zinc-400">No crafters yet. Add one above!</p>
+            <div className="bg-surface border border-rim rounded-2xl p-8 text-center shadow-lg shadow-black/30">
+              <p className="text-ink-dim">No crafters yet. Add one above!</p>
             </div>
           ) : (
             <div className="space-y-3">
               {crafterStats.map((crafter) => (
                 <div
                   key={crafter.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-lg p-5"
+                  className="bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30"
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-semibold text-zinc-100 text-lg">
+                      <h3 className="font-semibold text-ink text-lg">
                         {crafter.characterName}
                       </h3>
-                      <p className="text-zinc-500 text-sm">{crafter.name}</p>
+                      <p className="text-ink-dim text-sm">{crafter.name}</p>
                     </div>
                     <div className="text-right">
                       <p
                         className={`text-xl font-bold ${
-                          crafter.totalOwed > 0 ? "text-yellow-400" : "text-green-400"
+                          crafter.totalOwed > 0 ? "text-primary" : "text-green-400"
                         }`}
                       >
                         {formatGold(crafter.totalOwed)}
                       </p>
-                      <p className="text-zinc-500 text-xs">outstanding</p>
+                      <p className="text-ink-dim text-xs">outstanding</p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-zinc-800 grid grid-cols-3 gap-3 text-sm">
+                  <div className="mt-4 pt-4 border-t border-rim grid grid-cols-3 gap-3 text-sm">
                     <div>
-                      <p className="text-zinc-500">Batches</p>
-                      <p className="text-zinc-300 font-medium">{crafter.batchCount}</p>
+                      <p className="text-ink-dim">Batches</p>
+                      <p className="text-ink font-medium">{crafter.batchCount}</p>
                     </div>
                     <div>
-                      <p className="text-zinc-500">Crafted Value</p>
-                      <p className="text-zinc-300 font-medium">
+                      <p className="text-ink-dim">Crafted Value</p>
+                      <p className="text-ink font-medium">
                         {formatGold(crafter.totalCraftedValue)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-zinc-500">Total Paid</p>
-                      <p className="text-zinc-300 font-medium">{formatGold(crafter.totalPaid)}</p>
+                      <p className="text-ink-dim">Total Paid</p>
+                      <p className="text-ink font-medium">{formatGold(crafter.totalPaid)}</p>
                     </div>
                   </div>
                 </div>
