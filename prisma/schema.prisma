@@ -43,6 +43,7 @@ model ConsumableUse {
   entry     ConsumableEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
   unitIndex Int
   status    ItemStatus      @default(AVAILABLE)
+  usedAt    DateTime?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 }

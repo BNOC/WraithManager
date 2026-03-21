@@ -18,6 +18,38 @@ function formatDate(date: Date) {
   });
 }
 
+function UsedOnDates({
+  uses,
+}: {
+  uses: { status: string; usedAt: Date | null }[];
+}) {
+  const usedDates = uses
+    .filter((u) => u.status === "USED" && u.usedAt)
+    .map((u) => u.usedAt!);
+
+  if (usedDates.length === 0) return <span className="text-zinc-700">—</span>;
+
+  // Group by calendar day
+  const byDay = new Map<string, number>();
+  for (const d of usedDates) {
+    const key = formatDate(d);
+    byDay.set(key, (byDay.get(key) ?? 0) + 1);
+  }
+
+  return (
+    <div className="space-y-0.5">
+      {Array.from(byDay.entries()).map(([date, count]) => (
+        <div key={date}>
+          {count > 1 && (
+            <span className="text-zinc-400 mr-1">({count})</span>
+          )}
+          {date}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface PageProps {
   searchParams: Promise<{
     crafter?: string;
@@ -42,10 +74,25 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
     where.itemType = params.type as ItemType;
   }
 
-  const entries = await prisma.consumableEntry.findMany({
+  const rawEntries = await prisma.consumableEntry.findMany({
     where,
-    orderBy: { craftedAt: "desc" },
     include: { crafter: true, uses: { orderBy: { unitIndex: "asc" } } },
+  });
+
+  // Sort by most recent usedAt among uses, falling back to craftedAt for unused entries.
+  // Fully-used entries (any usedAt present) bubble to the top.
+  function latestUsedAt(entry: (typeof rawEntries)[0]): number {
+    const dates = entry.uses
+      .filter((u) => u.usedAt)
+      .map((u) => u.usedAt!.getTime());
+    return dates.length > 0 ? Math.max(...dates) : 0;
+  }
+
+  const entries = [...rawEntries].sort((a, b) => {
+    const aUsed = latestUsedAt(a);
+    const bUsed = latestUsedAt(b);
+    if (aUsed !== bUsed) return bUsed - aUsed;
+    return b.craftedAt.getTime() - a.craftedAt.getTime();
   });
 
   const totalCost = entries.reduce((sum, e) => sum + e.totalCost, 0);
@@ -186,7 +233,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                   Uses
                 </th>
                 <th className="text-left px-4 py-3 text-zinc-400 font-medium hidden lg:table-cell">
-                  Date
+                  Used On
                 </th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -233,7 +280,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-zinc-500 text-xs hidden lg:table-cell">
-                    {formatDate(entry.craftedAt)}
+                    <UsedOnDates uses={entry.uses} />
                   </td>
                   <td className="px-4 py-3"></td>
                 </tr>

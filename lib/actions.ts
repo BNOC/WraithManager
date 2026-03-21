@@ -85,7 +85,10 @@ export async function updateEntryStatus(id: string, status: ItemStatus) {
 
   await prisma.consumableUse.updateMany({
     where: { entryId: id },
-    data: { status },
+    data: {
+      status,
+      usedAt: status === "USED" ? new Date() : null,
+    },
   });
 
   revalidatePath("/consumables");
@@ -95,7 +98,10 @@ export async function updateEntryStatus(id: string, status: ItemStatus) {
 export async function updateUseStatus(useId: string, status: ItemStatus) {
   const use = await prisma.consumableUse.update({
     where: { id: useId },
-    data: { status },
+    data: {
+      status,
+      usedAt: status === "USED" ? new Date() : null,
+    },
   });
 
   const allUses = await prisma.consumableUse.findMany({
