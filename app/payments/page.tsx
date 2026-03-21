@@ -1,7 +1,12 @@
 export const dynamic = "force-dynamic";
 
+import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { createPayment } from "@/lib/actions";
+
+type CrafterWithRelations = Prisma.CrafterGetPayload<{
+  include: { entries: true; payments: true };
+}>;
 
 function formatGold(amount: number) {
   return `${amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -72,7 +77,7 @@ export default async function PaymentsPage() {
                   required
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
                 >
-                  {crafters.map((c) => (
+                  {crafters.map((c: CrafterWithRelations) => (
                     <option key={c.id} value={c.id}>
                       {c.characterName} — owes {formatGold(
                         crafterBalances.find((b) => b.id === c.id)?.totalOwed ?? 0

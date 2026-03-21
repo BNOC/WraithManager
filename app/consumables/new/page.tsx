@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import type { Crafter } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { createConsumableEntry } from "@/lib/actions";
 
@@ -55,7 +56,7 @@ export default async function NewConsumablePage() {
             required
             className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500"
           >
-            {crafters.map((c) => (
+            {crafters.map((c: Crafter) => (
               <option key={c.id} value={c.id}>
                 {c.characterName} ({c.name})
               </option>

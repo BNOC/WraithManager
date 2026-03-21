@@ -4,7 +4,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
 import { MarkUsedButton } from "@/components/MarkUsedButton";
-import { ItemStatus, ItemType } from "@prisma/client";
+import type { Crafter, ItemStatus, ItemType } from "@prisma/client";
 
 function formatGold(amount: number) {
   return `${amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -80,7 +80,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
           >
             All Crafters
           </Link>
-          {crafters.map((c) => (
+          {crafters.map((c: Crafter) => (
             <Link
               key={c.id}
               href={buildFilterUrl(params, "crafter", c.id)}
