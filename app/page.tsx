@@ -160,7 +160,8 @@ export default async function DashboardPage() {
         return (
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-3">Current Inventory</h2>
-            <div className="bg-surface border border-rim rounded-2xl shadow-lg shadow-black/30 overflow-hidden divide-y divide-rim">
+            {/* Mobile: stacked rows */}
+            <div className="sm:hidden bg-surface border border-rim rounded-2xl shadow-lg shadow-black/30 overflow-hidden divide-y divide-rim">
               {allInventoryItems.map((item) => {
                 const pct = item.total > 0 ? item.remaining / item.total : 0;
                 const numColor =
@@ -169,19 +170,11 @@ export default async function DashboardPage() {
                   : pct <= 0.25 ? "text-amber-400"
                   : "text-emerald-400";
                 const type = item.itemType as Parameters<typeof ItemTypeIcon>[0]["type"];
-                const displayName = item.isFeast
-                  ? "Feast"
-                  : item.itemType === "OTHER" && item.itemName
-                  ? item.itemName
-                  : null;
                 return (
                   <div key={`${item.itemType}::${item.itemName}`} className="flex items-center gap-3 px-4 py-3">
                     <ItemTypeIcon type={type} size={18} />
                     <div className="flex-1 min-w-0">
                       <ItemTypeBadge type={type} />
-                      {displayName && (
-                        <p className="text-ink-faint text-xs mt-0.5 truncate">{displayName}</p>
-                      )}
                       {item.isFeast && feastCraftedTotal > 0 && (
                         <div className="flex gap-3 mt-0.5">
                           {feastRows.map((f) => (
@@ -192,6 +185,9 @@ export default async function DashboardPage() {
                           ))}
                         </div>
                       )}
+                      {!item.isFeast && item.itemType === "OTHER" && item.itemName && (
+                        <p className="text-ink-faint text-xs mt-0.5 truncate">{item.itemName}</p>
+                      )}
                     </div>
                     <p className={`text-2xl font-bold shrink-0 ${numColor}`}>
                       {item.total === 0 ? "—" : item.remaining}
@@ -199,6 +195,47 @@ export default async function DashboardPage() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Desktop: horizontal columns */}
+            <div className="hidden sm:block bg-surface border border-rim rounded-2xl shadow-lg shadow-black/30 overflow-hidden">
+              <div className="grid divide-x divide-rim" style={{ gridTemplateColumns: `repeat(${allInventoryItems.length}, 1fr)` }}>
+                {allInventoryItems.map((item) => {
+                  const pct = item.total > 0 ? item.remaining / item.total : 0;
+                  const numColor =
+                    item.total === 0 ? "text-red-400"
+                    : item.remaining === 0 ? "text-red-400"
+                    : pct <= 0.25 ? "text-amber-400"
+                    : "text-emerald-400";
+                  const type = item.itemType as Parameters<typeof ItemTypeIcon>[0]["type"];
+                  return (
+                    <div key={`${item.itemType}::${item.itemName}`} className="flex items-center gap-2 px-4 py-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <ItemTypeIcon type={type} size={14} />
+                          <ItemTypeBadge type={type} small />
+                        </div>
+                        {!item.isFeast && item.itemType === "OTHER" && item.itemName && (
+                          <p className="text-ink-faint text-[10px] mt-0.5 truncate">{item.itemName}</p>
+                        )}
+                        {item.isFeast && feastCraftedTotal > 0 && (
+                          <div className="flex gap-2 mt-0.5">
+                            {feastRows.map((f) => (
+                              <p key={f.itemName} className="text-ink-faint text-[10px] leading-tight">
+                                {f.itemName.split(" ")[0]}:{" "}
+                                <span className="text-ink-dim">{f.total === 0 ? "—" : f.remaining}</span>
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <p className={`text-2xl font-bold shrink-0 ${numColor}`}>
+                        {item.total === 0 ? "—" : item.remaining}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         );
