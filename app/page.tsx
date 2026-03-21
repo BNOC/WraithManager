@@ -109,36 +109,37 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Stat cards — mobile: single condensed card */}
-      <div className="sm:hidden bg-surface border border-rim rounded-2xl px-4 py-3 shadow-lg shadow-black/30">
-        <div className="grid grid-cols-4 divide-x divide-rim text-center">
+      {/* Stat card */}
+      <div className="relative bg-surface border border-rim rounded-2xl shadow-xl shadow-black/40 overflow-hidden">
+        {/* Subtle gradient top shimmer */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+        <div className="grid grid-cols-4 divide-x divide-rim">
           {[
-            { label: "Owed", value: formatGoldAbbr(grandOutstanding), accent: true },
-            { label: "Paid", value: formatGoldAbbr(grandTotalPaid), accent: false },
-            { label: "Inv.", value: formatGoldAbbr(totalInventoryValue), accent: false },
-            { label: "Crafters", value: crafters.length.toString(), accent: false },
-          ].map(({ label, value, accent }) => (
-            <div key={label} className="px-2">
-              <p className="text-ink-faint text-[10px] font-medium uppercase tracking-wider">{label}</p>
-              <p className={`text-base font-bold mt-0.5 ${accent ? "text-primary" : "text-ink"}`}>{value}</p>
+            { label: "Outstanding", shortLabel: "Owed", value: formatGold(grandOutstanding), abbr: formatGoldAbbr(grandOutstanding), accent: true },
+            { label: "Total Paid", shortLabel: "Paid", value: formatGold(grandTotalPaid), abbr: formatGoldAbbr(grandTotalPaid), accent: false },
+            { label: "Inventory Value", shortLabel: "Inv.", value: formatGold(totalInventoryValue), abbr: formatGoldAbbr(totalInventoryValue), accent: false },
+            { label: "Crafters", shortLabel: "Crafters", value: crafters.length.toString(), abbr: crafters.length.toString(), accent: false },
+          ].map(({ label, shortLabel, value, abbr, accent }) => (
+            <div key={label} className={`relative px-4 sm:px-7 py-4 sm:py-6 ${accent ? "bg-primary/[0.05]" : ""}`}>
+              {accent && <div className="absolute top-0 inset-x-0 h-0.5 bg-primary/50" />}
+              <p className="text-ink-faint text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest">
+                <span className="sm:hidden">{shortLabel}</span>
+                <span className="hidden sm:inline">{label}</span>
+              </p>
+              <p className={`font-bold mt-1.5 sm:mt-3 leading-none ${accent ? "text-primary text-xl sm:text-3xl" : "text-ink text-lg sm:text-2xl"}`}>
+                <span className="sm:hidden">{abbr}</span>
+                <span className="hidden sm:inline">{value}</span>
+              </p>
+              {accent && (
+                <div className="hidden sm:flex items-center gap-1 mt-3">
+                  <div className="h-0.5 w-8 bg-primary/50 rounded-full" />
+                  <div className="h-0.5 w-3 bg-primary/25 rounded-full" />
+                </div>
+              )}
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Stat cards — desktop: separate cards */}
-      <div className="hidden sm:grid grid-cols-4 gap-4">
-        {[
-          { label: "Outstanding", value: formatGold(grandOutstanding), accent: true },
-          { label: "Total Paid", value: formatGold(grandTotalPaid), accent: false },
-          { label: "Inventory Value", value: formatGold(totalInventoryValue), accent: false },
-          { label: "Crafters", value: crafters.length.toString(), accent: false },
-        ].map(({ label, value, accent }) => (
-          <div key={label} className="bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30">
-            <p className="text-ink-faint text-xs font-medium uppercase tracking-wider">{label}</p>
-            <p className={`text-2xl font-bold mt-2 ${accent ? "text-primary" : "text-ink"}`}>{value}</p>
-          </div>
-        ))}
       </div>
 
       {/* Inventory */}
