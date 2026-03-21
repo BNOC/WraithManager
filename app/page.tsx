@@ -14,7 +14,7 @@ function formatDate(d: Date) {
 }
 
 export default async function DashboardPage() {
-  const [crafters, recentBatches, recentUsage, batchCount, usageCount] = await Promise.all([
+  const [crafters, recentBatches, recentUsage, batchCount, usageCount, allBatches] = await Promise.all([
     prisma.crafter.findMany({
       include: {
         batches: {
@@ -34,7 +34,31 @@ export default async function DashboardPage() {
     }),
     prisma.craftBatch.count(),
     prisma.usageLog.count(),
+    prisma.craftBatch.findMany({
+      include: { usageLines: { select: { quantity: true } } },
+    }),
   ]);
+
+  // Inventory: group by itemType + itemName, sum remaining
+  const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number }>();
+  for (const b of allBatches) {
+    const key = `${b.itemType}::${b.itemName}`;
+    const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
+    const remaining = b.quantity - used;
+    if (!inventoryMap.has(key)) {
+      inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0 });
+    }
+    const entry = inventoryMap.get(key)!;
+    entry.remaining += remaining;
+    entry.total += b.quantity;
+  }
+  // Sort by a fixed type order then name
+  const TYPE_ORDER: Record<string, number> = {
+    FLASK_CAULDRON: 0, POTION_CAULDRON: 1, FEAST: 2, VANTUS_RUNE: 3, OTHER: 4,
+  };
+  const inventory = [...inventoryMap.values()].sort(
+    (a, b) => (TYPE_ORDER[a.itemType] ?? 9) - (TYPE_ORDER[b.itemType] ?? 9) || a.itemName.localeCompare(b.itemName)
+  );
 
   const crafterSummaries = crafters.map((crafter) => {
     const totalOwed = Math.max(
@@ -75,6 +99,47 @@ export default async function DashboardPage() {
           <p className="text-zinc-400 text-sm">Crafters</p>
           <p className="text-2xl font-bold text-zinc-100 mt-1">{crafters.length}</p>
         </div>
+      </div>
+
+      {/* Current inventory */}
+      <div>
+        <h2 className="text-xl font-semibold text-zinc-100 mb-4">Current Inventory</h2>
+        {inventory.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 text-center">
+            <p className="text-zinc-500 text-sm">No craft batches logged yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {inventory.map((item) => {
+              const pct = item.total > 0 ? item.remaining / item.total : 0;
+              const color =
+                item.remaining === 0
+                  ? "text-red-400"
+                  : pct <= 0.25
+                  ? "text-amber-400"
+                  : "text-green-400";
+              const border =
+                item.remaining === 0
+                  ? "border-red-900/50"
+                  : pct <= 0.25
+                  ? "border-amber-900/50"
+                  : "border-zinc-800";
+              return (
+                <div
+                  key={`${item.itemType}::${item.itemName}`}
+                  className={`bg-zinc-900 border ${border} rounded-lg p-4`}
+                >
+                  <ItemTypeBadge type={item.itemType as Parameters<typeof ItemTypeBadge>[0]["type"]} />
+                  {item.itemName && (
+                    <p className="text-zinc-400 text-xs mt-1 truncate">{item.itemName}</p>
+                  )}
+                  <p className={`text-2xl font-bold mt-2 ${color}`}>{item.remaining}</p>
+                  <p className="text-zinc-600 text-xs mt-0.5">of {item.total} crafted</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Crafter balances */}
