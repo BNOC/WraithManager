@@ -16,14 +16,31 @@ const AUTO_NAMES: Partial<Record<string, string>> = {
   VANTUS_RUNE: "Vantus Rune",
 };
 
+type DefaultPrices = Partial<Record<string, number>>;
+
 const selectClass =
   "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
 const inputClass =
   "w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500";
 const labelClass = "block text-sm font-medium text-zinc-300 mb-1.5";
 
-export function ConsumableForm({ crafters }: { crafters: Crafter[] }) {
+export function ConsumableForm({
+  crafters,
+  defaultPrices = {},
+}: {
+  crafters: Crafter[];
+  defaultPrices?: DefaultPrices;
+}) {
   const [itemType, setItemType] = useState("FLASK_CAULDRON");
+  const [costPerUnit, setCostPerUnit] = useState(
+    () => defaultPrices["FLASK_CAULDRON"]?.toString() ?? ""
+  );
+
+  function handleTypeChange(type: string) {
+    setItemType(type);
+    const price = defaultPrices[type];
+    if (price !== undefined) setCostPerUnit(price.toString());
+  }
 
   const autoName = AUTO_NAMES[itemType];
 
@@ -42,7 +59,7 @@ export function ConsumableForm({ crafters }: { crafters: Crafter[] }) {
           name="itemType"
           required
           value={itemType}
-          onChange={(e) => setItemType(e.target.value)}
+          onChange={(e) => handleTypeChange(e.target.value)}
           className={selectClass}
         >
           <option value="FLASK_CAULDRON">Flask Cauldron</option>
@@ -124,8 +141,10 @@ export function ConsumableForm({ crafters }: { crafters: Crafter[] }) {
             type="number"
             required
             min="0"
-            step="0.01"
+            step="1"
             placeholder="e.g. 5000"
+            value={costPerUnit}
+            onChange={(e) => setCostPerUnit(e.target.value)}
             className={inputClass}
           />
         </div>

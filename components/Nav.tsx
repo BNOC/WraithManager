@@ -8,6 +8,7 @@ const navItems = [
   { href: "/consumables", label: "Consumables" },
   { href: "/payments", label: "Payments" },
   { href: "/crafters", label: "Crafters" },
+  { href: "/prices", label: "Prices" },
 ];
 
 export function Nav() {

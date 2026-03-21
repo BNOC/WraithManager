@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsx -e \":*)",
+      "Bash(npx dotenv -e .env -- npx tsx -e \":*)",
+      "Bash(set -a)",
+      "Bash(source .env)",
+      "Bash(set +a)",
+      "Bash(npx tsx:*)"
+    ]
+  }
+}

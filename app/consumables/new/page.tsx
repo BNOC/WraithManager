@@ -5,9 +5,16 @@ import prisma from "@/lib/prisma";
 import { ConsumableForm } from "@/components/ConsumableForm";
 
 export default async function NewConsumablePage() {
-  const crafters = await prisma.crafter.findMany({
-    orderBy: { characterName: "asc" },
-  });
+  const [crafters, allPrices] = await Promise.all([
+    prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
+    prisma.priceConfig.findMany({ orderBy: { effectiveDate: "desc" } }),
+  ]);
+
+  // Current price = most-recent entry per type
+  const defaultPrices: Record<string, number> = {};
+  for (const p of allPrices) {
+    if (!(p.itemType in defaultPrices)) defaultPrices[p.itemType] = p.price;
+  }
 
   if (crafters.length === 0) {
     return (
@@ -36,7 +43,7 @@ export default async function NewConsumablePage() {
         <h1 className="text-3xl font-bold text-yellow-400">Log Consumables</h1>
         <p className="text-zinc-400 mt-1">Record crafted consumables for the guild</p>
       </div>
-      <ConsumableForm crafters={crafters} />
+      <ConsumableForm crafters={crafters} defaultPrices={defaultPrices} />
     </div>
   );
 }

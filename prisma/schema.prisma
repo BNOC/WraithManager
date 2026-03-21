@@ -47,6 +47,15 @@ model ConsumableUse {
   updatedAt DateTime        @updatedAt
 }
 
+model PriceConfig {
+  id            String   @id @default(cuid())
+  itemType      ItemType
+  price         Float
+  effectiveDate DateTime @default(now())
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
 model Payment {
   id        String   @id @default(cuid())
   crafterId String

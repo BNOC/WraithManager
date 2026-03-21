@@ -115,6 +115,25 @@ export async function updateUseStatus(useId: string, status: ItemStatus) {
   revalidatePath("/");
 }
 
+// ---- Price config actions ----
+
+export async function createPriceConfig(formData: FormData) {
+  const itemType = formData.get("itemType") as ItemType;
+  const price = parseFloat(formData.get("price") as string);
+  const effectiveDateStr = formData.get("effectiveDate") as string;
+  const notes = formData.get("notes") as string;
+
+  const effectiveDate = effectiveDateStr ? new Date(effectiveDateStr) : new Date();
+
+  await prisma.priceConfig.create({
+    data: { itemType, price, effectiveDate, notes: notes || null },
+  });
+
+  revalidatePath("/prices");
+  revalidatePath("/consumables/new");
+  redirect("/prices");
+}
+
 // ---- Payment actions ----
 
 export async function createPayment(formData: FormData) {
