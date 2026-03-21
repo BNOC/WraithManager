@@ -14,7 +14,7 @@ function formatDate(d: Date) {
 }
 
 export default async function DashboardPage() {
-  const [crafters, recentBatches, recentUsage, batchCount, usageCount, allBatches] = await Promise.all([
+  const [crafters, recentBatches, recentUsage, allBatches] = await Promise.all([
     prisma.crafter.findMany({
       include: {
         batches: {
@@ -32,8 +32,6 @@ export default async function DashboardPage() {
       take: 5,
       include: { lines: { include: { batch: { include: { crafter: true } } } } },
     }),
-    prisma.craftBatch.count(),
-    prisma.usageLog.count(),
     prisma.craftBatch.findMany({
       include: { usageLines: { select: { quantity: true } } },
     }),
@@ -49,19 +47,21 @@ export default async function DashboardPage() {
   const grandOutstanding = crafterSummaries.reduce((s, c) => s + c.outstanding, 0);
 
   // Inventory
-  const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number }>();
+  const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number; remainingValue: number }>();
   for (const b of allBatches) {
     const key = `${b.itemType}::${b.itemName}`;
     const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
-    if (!inventoryMap.has(key)) inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0 });
+    if (!inventoryMap.has(key)) inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0, remainingValue: 0 });
     const entry = inventoryMap.get(key)!;
     entry.remaining += b.quantity - used;
     entry.total += b.quantity;
+    entry.remainingValue += (b.quantity - used) * b.costPerUnit;
   }
   const TYPE_ORDER: Record<string, number> = { FLASK_CAULDRON: 0, POTION_CAULDRON: 1, FEAST: 2, VANTUS_RUNE: 3, OTHER: 4 };
   const inventory = [...inventoryMap.values()].sort(
     (a, b) => (TYPE_ORDER[a.itemType] ?? 9) - (TYPE_ORDER[b.itemType] ?? 9) || a.itemName.localeCompare(b.itemName)
   );
+  const totalInventoryValue = inventory.reduce((s, i) => s + i.remainingValue, 0);
 
   return (
     <div className="space-y-8">
@@ -90,14 +90,14 @@ export default async function DashboardPage() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "Outstanding", value: formatGold(grandOutstanding), accent: true },
-          { label: "Craft Batches", value: batchCount.toString(), accent: false },
-          { label: "Usage Sessions", value: usageCount.toString(), accent: false },
-          { label: "Crafters", value: crafters.length.toString(), accent: false },
-        ].map(({ label, value, accent }) => (
-          <div key={label} className="bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30">
-            <p className="text-ink-faint text-xs font-medium uppercase tracking-wider">{label}</p>
-            <p className={`text-2xl font-bold mt-2 ${accent ? "text-primary" : "text-ink"}`}>{value}</p>
+          { label: "Outstanding", value: formatGold(grandOutstanding), accent: true, empty: false },
+          { label: "Inventory Value", value: formatGold(totalInventoryValue), accent: false, empty: false },
+          { label: "", value: "", accent: false, empty: true },
+          { label: "Crafters", value: crafters.length.toString(), accent: false, empty: false },
+        ].map(({ label, value, accent, empty }) => (
+          <div key={label || "empty"} className={`bg-surface border border-rim rounded-2xl p-5 shadow-lg shadow-black/30 ${empty ? "opacity-30" : ""}`}>
+            <p className="text-ink-faint text-xs font-medium uppercase tracking-wider">{label || "\u00a0"}</p>
+            <p className={`text-2xl font-bold mt-2 ${accent ? "text-primary" : "text-ink"}`}>{value || "\u00a0"}</p>
           </div>
         ))}
       </div>

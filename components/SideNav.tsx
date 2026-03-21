@@ -39,9 +39,7 @@ export function SideNav() {
         {/* Logo */}
         <div className="px-5 py-6 border-b border-rim">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-              <WraithIcon />
-            </span>
+            <WraithIcon />
             <span className="font-bold text-ink tracking-tight leading-none">
               Wraith<span className="text-primary">Manager</span>
             </span>
@@ -113,7 +111,7 @@ export function SideNav() {
 
 function WraithIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="text-primary">
+    <svg width="32" height="32" viewBox="0 0 16 16" fill="currentColor" className="text-primary shrink-0">
       {/* Body: dome top, wavy bottom */}
       <path d="M8 1C4.69 1 2 3.69 2 7v6.5l1.5-1.25 1.5 1.25 1.5-1.25 1.5 1.25 1.5-1.25 1.5 1.25 1.5-1.25V7c0-3.31-2.69-6-6-6z" />
       {/* Eyes */}

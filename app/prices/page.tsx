@@ -35,13 +35,14 @@ function formatDate(d: Date) {
 }
 
 interface PageProps {
-  searchParams: Promise<{ sort?: string; dir?: string }>;
+  searchParams: Promise<{ sort?: string; dir?: string; type?: string }>;
 }
 
 export default async function PricesPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const sort = params.sort ?? "date";
   const dir = params.dir ?? "desc";
+  const typeFilter = ALL_TYPES.find((t) => t.value === params.type)?.value ?? null;
 
   const allConfigs = await prisma.priceConfig.findMany({
     orderBy: { effectiveDate: "desc" },
@@ -53,8 +54,9 @@ export default async function PricesPage({ searchParams }: PageProps) {
     if (!currentPrices.has(c.itemType)) currentPrices.set(c.itemType, c);
   }
 
-  // Sort history
-  const sorted = [...allConfigs].sort((a, b) => {
+  // Filter then sort history
+  const filtered = typeFilter ? allConfigs.filter((c) => c.itemType === typeFilter) : allConfigs;
+  const sorted = [...filtered].sort((a, b) => {
     let cmp = 0;
     if (sort === "type") {
       cmp = (TYPE_ORDER[a.itemType] ?? 99) - (TYPE_ORDER[b.itemType] ?? 99);
@@ -75,7 +77,21 @@ export default async function PricesPage({ searchParams }: PageProps) {
 
   function sortUrl(col: string) {
     const newDir = sort === col && dir === "desc" ? "asc" : "desc";
-    return `/prices?sort=${col}&dir=${newDir}`;
+    const p = new URLSearchParams({ sort: col, dir: newDir });
+    if (typeFilter) p.set("type", typeFilter);
+    return `/prices?${p.toString()}`;
+  }
+
+  function filterUrl(type: string | null) {
+    const p = new URLSearchParams({ sort, dir });
+    if (type) p.set("type", type);
+    return `/prices?${p.toString()}`;
+  }
+
+  function filterClass(active: boolean) {
+    return active
+      ? "px-2.5 py-1 rounded-xl text-xs font-medium bg-primary/10 text-primary border border-primary/50"
+      : "px-2.5 py-1 rounded-xl text-xs font-medium bg-surface-hi text-ink-dim border border-rim hover:text-ink transition-colors";
   }
 
   function sortIndicator(col: string) {
@@ -191,10 +207,7 @@ export default async function PricesPage({ searchParams }: PageProps) {
           </div>
           <div>
             <label htmlFor="notes" className={labelClass}>
-              Notes{" "}
-              <span className="text-ink-dim font-normal">
-                (optional — e.g. "start of season prices")
-              </span>
+              Notes
             </label>
             <input
               id="notes"
@@ -213,13 +226,21 @@ export default async function PricesPage({ searchParams }: PageProps) {
         </form>
       </div>
 
-      {/* Full history — sortable */}
+      {/* Full history — filterable + sortable */}
       {allConfigs.length > 0 && (
         <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
-          <div className="px-4 py-3 border-b border-rim">
+          <div className="px-4 py-3 border-b border-rim flex items-center justify-between flex-wrap gap-3">
             <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">
               Price History
             </p>
+            <div className="flex gap-1 flex-wrap">
+              <Link href={filterUrl(null)} className={filterClass(!typeFilter)}>All</Link>
+              {ALL_TYPES.map(({ value, label }) => (
+                <Link key={value} href={filterUrl(value)} className={filterClass(typeFilter === value)}>
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
           <table className="w-full text-sm">
             <thead>
