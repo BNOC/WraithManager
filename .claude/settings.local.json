@@ -7,7 +7,8 @@
       "Bash(source .env)",
       "Bash(set +a)",
       "Bash(npx tsx:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma:*)"
     ]
   }
 }

@@ -48,19 +48,54 @@ export async function createCraftBatch(formData: FormData) {
 
   const craftedAt = craftedAtStr ? new Date(craftedAtStr) : new Date();
 
-  await prisma.craftBatch.create({
-    data: {
-      crafterId,
-      itemType,
-      itemName,
-      quantity,
-      costPerUnit,
-      craftedAt,
-      notes: notes || null,
-    },
+  await prisma.$transaction(async (tx) => {
+    const batch = await tx.craftBatch.create({
+      data: {
+        crafterId,
+        itemType,
+        itemName,
+        quantity,
+        costPerUnit,
+        craftedAt,
+        notes: notes || null,
+      },
+    });
+
+    // Retroactively attribute any unattributed usage logs for this crafter + item
+    const unattributedLogs = await tx.usageLog.findMany({
+      where: {
+        crafterId,
+        itemType,
+        itemName: itemName || undefined,
+      },
+      include: { lines: { select: { quantity: true } } },
+      orderBy: { raidDate: "asc" },
+    });
+
+    let batchRemaining = quantity;
+
+    for (const log of unattributedLogs) {
+      if (batchRemaining <= 0) break;
+      const attributed = log.lines.reduce((s, l) => s + l.quantity, 0);
+      const unattributed = log.quantityUsed - attributed;
+      if (unattributed <= 0) continue;
+
+      const take = Math.min(unattributed, batchRemaining);
+      await tx.usageLine.create({
+        data: {
+          usageLogId: log.id,
+          batchId: batch.id,
+          quantity: take,
+          costPerUnit,
+        },
+      });
+      batchRemaining -= take;
+    }
   });
 
   revalidatePath("/consumables");
+  revalidatePath("/usage");
+  revalidatePath("/payments");
   revalidatePath("/");
   redirect("/consumables");
 }
@@ -112,6 +147,7 @@ async function fifoAttributeUsage(
       itemName: opts.itemName,
       quantityUsed: opts.quantityUsed,
       notes: opts.notes,
+      crafterId: opts.crafterId,
     },
   });
 
@@ -178,6 +214,7 @@ export async function updateUsageLog(id: string, raidDate: string, entry: RaidNi
         itemName: entry.itemName,
         quantityUsed: entry.quantityUsed,
         notes: entry.notes,
+        crafterId: entry.crafterId,
       },
     });
 

@@ -16,6 +16,7 @@ model Crafter {
   characterName String
   createdAt     DateTime     @default(now())
   batches       CraftBatch[]
+  usageLogs     UsageLog[]
 }
 
 // One record per crafting session
@@ -43,6 +44,8 @@ model UsageLog {
   itemName     String?
   quantityUsed Int
   notes        String?
+  crafterId    String?
+  crafter      Crafter?    @relation(fields: [crafterId], references: [id])
   lines        UsageLine[]
   createdAt    DateTime    @default(now())
 }

@@ -17,6 +17,7 @@ interface BatchSummary {
   remaining: number;
   craftedAt: Date;
   crafter: string;
+  crafterId: string;
 }
 
 interface NotePreset {
@@ -76,15 +77,25 @@ export function UsageEditForm({
 
   function getStock() {
     const resolvedName = autoName ?? itemName;
-    if (!resolvedName) return { available: [], total: 0 };
-    const available = batches
-      .filter(
-        (b) =>
-          b.itemType === itemType &&
-          (autoName ? b.itemName === autoName : b.itemName === resolvedName)
-      )
+    if (!resolvedName) return { available: [], total: 0, crafterTotal: 0, otherTotal: 0 };
+    const matchesItem = (b: BatchSummary) =>
+      b.itemType === itemType &&
+      (autoName ? b.itemName === autoName : b.itemName === resolvedName);
+    const available = batches.filter(matchesItem)
       .sort((a, b) => new Date(a.craftedAt).getTime() - new Date(b.craftedAt).getTime());
-    return { available, total: available.reduce((s, b) => s + b.remaining, 0) };
+    const crafterBatches = crafterId ? available.filter((b) => b.crafterId === crafterId) : [];
+    const crafterTotal = crafterBatches.reduce((s, b) => s + b.remaining, 0);
+    const total = available.reduce((s, b) => s + b.remaining, 0);
+    return { available, total, crafterTotal, otherTotal: total - crafterTotal };
+  }
+
+  function getCrafterStock(cId: string) {
+    const resolvedName = autoName ?? itemName;
+    if (!resolvedName) return 0;
+    return batches
+      .filter((b) => b.crafterId === cId && b.itemType === itemType &&
+        (autoName ? b.itemName === autoName : b.itemName === resolvedName))
+      .reduce((s, b) => s + b.remaining, 0);
   }
 
   const stock = getStock();
@@ -220,30 +231,46 @@ export function UsageEditForm({
               className={selectClass}
             >
               <option value="">Select crafter…</option>
-              {crafters.map((c) => (
-                <option key={c.id} value={c.id}>{c.characterName}</option>
-              ))}
+              {crafters.map((c) => {
+                const cs = (autoName || itemName) ? getCrafterStock(c.id) : null;
+                return (
+                  <option key={c.id} value={c.id}>
+                    {c.characterName}{cs !== null ? ` (${cs} available)` : ""}
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>
 
         {/* Stock info */}
         {(autoName || itemName) && (
-          <div className="bg-surface-hi border border-rim/50 rounded-xl px-3 py-2 text-xs">
-            {stock.total > 0 ? (
+          <div className={`border rounded-xl px-3 py-2 text-xs ${
+            crafterId && stock.crafterTotal === 0 && stock.otherTotal > 0
+              ? "bg-amber-500/10 border-amber-500/30"
+              : "bg-surface-hi border-rim/50"
+          }`}>
+            {crafterId ? (
+              stock.crafterTotal > 0 ? (
+                <span className="text-ink-dim">
+                  <span className="text-primary font-medium">{stock.crafterTotal}</span> available from selected crafter
+                  {stock.otherTotal > 0 && (
+                    <span className="text-ink-faint"> · {stock.otherTotal} from others</span>
+                  )}
+                </span>
+              ) : stock.otherTotal > 0 ? (
+                <span className="text-amber-400">
+                  Selected crafter has no stock — {stock.otherTotal} available from other crafters
+                </span>
+              ) : (
+                <span className="text-ink-faint">No stock available — will be attributed when craft is logged</span>
+              )
+            ) : stock.total > 0 ? (
               <span className="text-ink-dim">
-                <span className="text-primary font-medium">{stock.total}</span> available
-                {stock.available.length > 1 && (
-                  <span> across {stock.available.length} batches</span>
-                )}
-                {stock.available[0] && (
-                  <span className="text-ink-faint">
-                    {" "}· oldest from {stock.available[0].crafter}
-                  </span>
-                )}
+                <span className="text-primary font-medium">{stock.total}</span> available across all crafters
               </span>
             ) : (
-              <span className="text-ink-faint">No stock available</span>
+              <span className="text-ink-faint">No stock available — will be attributed when craft is logged</span>
             )}
           </div>
         )}

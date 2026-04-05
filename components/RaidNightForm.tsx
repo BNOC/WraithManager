@@ -17,6 +17,7 @@ interface BatchSummary {
   remaining: number;
   craftedAt: Date;
   crafter: string;
+  crafterId: string;
 }
 
 interface NotePreset {
@@ -103,15 +104,27 @@ export function RaidNightForm({
   function getStock(entry: EntryState) {
     const autoName = AUTO_NAMES[entry.itemType];
     const resolvedName = autoName ?? entry.itemName;
-    if (!resolvedName) return { available: [], total: 0 };
-    const available = batches
-      .filter(
-        (b) =>
-          b.itemType === entry.itemType &&
-          (autoName ? b.itemName === autoName : b.itemName === resolvedName)
-      )
+    if (!resolvedName) return { available: [], total: 0, crafterTotal: 0, otherTotal: 0 };
+    const matchesItem = (b: BatchSummary) =>
+      b.itemType === entry.itemType &&
+      (autoName ? b.itemName === autoName : b.itemName === resolvedName);
+    const available = batches.filter(matchesItem)
       .sort((a, b) => new Date(a.craftedAt).getTime() - new Date(b.craftedAt).getTime());
-    return { available, total: available.reduce((s, b) => s + b.remaining, 0) };
+    const crafterBatches = entry.crafterId ? available.filter((b) => b.crafterId === entry.crafterId) : [];
+    const crafterTotal = crafterBatches.reduce((s, b) => s + b.remaining, 0);
+    const total = available.reduce((s, b) => s + b.remaining, 0);
+    const otherTotal = total - crafterTotal;
+    return { available, total, crafterTotal, otherTotal };
+  }
+
+  function getCrafterStock(crafterId: string, itemType: string, itemName: string) {
+    const autoName = AUTO_NAMES[itemType];
+    const resolvedName = autoName ?? itemName;
+    if (!resolvedName) return 0;
+    return batches
+      .filter((b) => b.crafterId === crafterId && b.itemType === itemType &&
+        (autoName ? b.itemName === autoName : b.itemName === resolvedName))
+      .reduce((s, b) => s + b.remaining, 0);
   }
 
   function handleSubmit() {
@@ -170,6 +183,7 @@ export function RaidNightForm({
             entry={entry}
             crafters={crafters}
             stock={getStock(entry)}
+            getCrafterStock={getCrafterStock}
             presets={presets}
             canRemove={entries.length > 1}
             onUpdate={(patch) => updateEntry(entry.key, patch)}
@@ -342,6 +356,7 @@ function EntryRow({
   entry,
   crafters,
   stock,
+  getCrafterStock,
   presets,
   canRemove,
   onUpdate,
@@ -350,7 +365,8 @@ function EntryRow({
   index: number;
   entry: EntryState;
   crafters: Crafter[];
-  stock: { available: BatchSummary[]; total: number };
+  stock: { available: BatchSummary[]; total: number; crafterTotal: number; otherTotal: number };
+  getCrafterStock: (crafterId: string, itemType: string, itemName: string) => number;
   presets: NotePreset[];
   canRemove: boolean;
   onUpdate: (patch: Partial<EntryState>) => void;
@@ -456,30 +472,48 @@ function EntryRow({
             className={selectClass}
           >
             <option value="">Select crafter…</option>
-            {crafters.map((c) => (
-              <option key={c.id} value={c.id}>{c.characterName}</option>
-            ))}
+            {crafters.map((c) => {
+              const crafterStock = (autoName || entry.itemName)
+                ? getCrafterStock(c.id, entry.itemType, entry.itemName)
+                : null;
+              return (
+                <option key={c.id} value={c.id}>
+                  {c.characterName}{crafterStock !== null ? ` (${crafterStock} available)` : ""}
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>
 
       {/* Stock info */}
       {(autoName || entry.itemName) && (
-        <div className="bg-surface-hi border border-rim/50 rounded-xl px-3 py-2 text-xs">
-          {stock.total > 0 ? (
+        <div className={`border rounded-xl px-3 py-2 text-xs ${
+          entry.crafterId && stock.crafterTotal === 0 && stock.otherTotal > 0
+            ? "bg-amber-500/10 border-amber-500/30"
+            : "bg-surface-hi border-rim/50"
+        }`}>
+          {entry.crafterId ? (
+            stock.crafterTotal > 0 ? (
+              <span className="text-ink-dim">
+                <span className="text-primary font-medium">{stock.crafterTotal}</span> available from selected crafter
+                {stock.otherTotal > 0 && (
+                  <span className="text-ink-faint"> · {stock.otherTotal} from others</span>
+                )}
+              </span>
+            ) : stock.otherTotal > 0 ? (
+              <span className="text-amber-400">
+                Selected crafter has no stock — {stock.otherTotal} available from other crafters
+              </span>
+            ) : (
+              <span className="text-ink-faint">No stock available — will be attributed when craft is logged</span>
+            )
+          ) : stock.total > 0 ? (
             <span className="text-ink-dim">
-              <span className="text-primary font-medium">{stock.total}</span> available
-              {stock.available.length > 1 && (
-                <span> across {stock.available.length} batches</span>
-              )}
-              {stock.available[0] && (
-                <span className="text-ink-faint">
-                  {" "}· oldest from {stock.available[0].crafter}
-                </span>
-              )}
+              <span className="text-primary font-medium">{stock.total}</span> available across all crafters
             </span>
           ) : (
-            <span className="text-ink-faint">No stock available</span>
+            <span className="text-ink-faint">No stock available — will be attributed when craft is logged</span>
           )}
         </div>
       )}

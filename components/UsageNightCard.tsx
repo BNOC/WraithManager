@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
@@ -53,7 +54,7 @@ export interface UsageNightCardProps {
   logs: UsageLogRow[];
 }
 
-export function UsageNightCard({ dateKey, raidDate, nightValue, logs }: UsageNightCardProps) {
+export function UsageNightCard({ raidDate, nightValue, logs }: UsageNightCardProps) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -91,7 +92,7 @@ export function UsageNightCard({ dateKey, raidDate, nightValue, logs }: UsageNig
               </div>
 
               <div className="flex-1 min-w-0">
-                {/* Item header — value + edit pinned right, never wraps */}
+                {/* Item header */}
                 <div className="flex items-start justify-between gap-2 mb-1.5">
                   <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                     <ItemTypeBadge
@@ -106,30 +107,34 @@ export function UsageNightCard({ dateKey, raidDate, nightValue, logs }: UsageNig
                       </span>
                     )}
                   </div>
-                  <span className="text-ink-dim text-sm font-medium shrink-0">
-                    {log.lineValue > 0 ? formatGoldAbbr(log.lineValue) : "—"}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-ink-dim text-sm font-medium">
+                      {log.lineValue > 0 ? formatGoldAbbr(log.lineValue) : "—"}
+                    </span>
+                    <Link
+                      href={`/usage/${log.id}/edit`}
+                      className="text-xs text-ink-faint hover:text-primary transition-colors"
+                    >
+                      Edit
+                    </Link>
+                  </div>
                 </div>
 
-                {/* FIFO attribution lines */}
+                {/* Attribution lines */}
                 <div className="space-y-0.5 pl-1">
-                  {log.lines.length === 0 ? (
-                    <p className="text-ink-faint text-xs">No batch stock available at time of logging.</p>
-                  ) : (
-                    log.lines.map((line) => (
-                      <div key={line.id} className="flex items-center justify-between gap-2 text-xs">
-                        <span className="text-ink-dim">
-                          · {line.quantity} from{" "}
-                          <span className="text-ink font-medium">{line.crafterName}</span>{" "}
-                          <span className="text-ink-faint">({formatDateShort(line.batchCraftedAt)})</span>
-                        </span>
-                        <span className="text-ink-faint shrink-0">{formatGoldAbbr(line.costPerUnit)}/unit</span>
-                      </div>
-                    ))
-                  )}
+                  {log.lines.map((line) => (
+                    <div key={line.id} className="flex items-center justify-between gap-2 text-xs">
+                      <span className="text-ink-dim">
+                        · {line.quantity} from{" "}
+                        <span className="text-ink font-medium">{line.crafterName}</span>{" "}
+                        <span className="text-ink-faint">({formatDateShort(line.batchCraftedAt)})</span>
+                      </span>
+                      <span className="text-ink-faint shrink-0">{formatGoldAbbr(line.costPerUnit)}/unit</span>
+                    </div>
+                  ))}
                   {log.unattributed > 0 && (
                     <p className="text-amber-400 text-xs">
-                      ⚠ {log.unattributed} unit{log.unattributed !== 1 ? "s" : ""} unattributed
+                      ⏳ {log.unattributed} unit{log.unattributed !== 1 ? "s" : ""} pending — will resolve when craft is logged
                     </p>
                   )}
                 </div>

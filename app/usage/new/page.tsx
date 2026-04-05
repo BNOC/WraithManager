@@ -23,6 +23,7 @@ export default async function NewUsagePage() {
       remaining: b.quantity - b.usageLines.reduce((s, l) => s + l.quantity, 0),
       craftedAt: b.craftedAt,
       crafter: b.crafter.characterName,
+      crafterId: b.crafterId,
     }))
     .filter((b) => b.remaining > 0);
 
