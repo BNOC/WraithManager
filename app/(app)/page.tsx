@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
+import { InventoryBreakdown } from "@/components/InventoryBreakdown";
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -40,7 +41,10 @@ export default async function DashboardPage() {
       include: { lines: { include: { batch: { include: { crafter: true } } } } },
     }),
     prisma.craftBatch.findMany({
-      include: { usageLines: { select: { quantity: true } } },
+      include: {
+        usageLines: { select: { quantity: true } },
+        crafter: { select: { active: true, characterName: true } },
+      },
     }),
   ]);
 
@@ -59,16 +63,35 @@ export default async function DashboardPage() {
     return s + used * b.costPerUnit;
   }, 0);
 
-  // Inventory
+  // Inventory — only count active crafters
+  type BatchCrafter = { active: boolean; characterName: string };
   const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number; remainingValue: number }>();
+  // Per-crafter breakdown: key → crafterName → remaining
+  const breakdownRaw = new Map<string, Map<string, number>>();
   for (const b of allBatches) {
-    const key = `${b.itemType}::${b.itemName}`;
+    const crafter = b.crafter as BatchCrafter;
     const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
+    const remaining = b.quantity - used;
+    if (!crafter.active) continue; // skip inactive crafter stock
+    const key = `${b.itemType}::${b.itemName}`;
     if (!inventoryMap.has(key)) inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0, remainingValue: 0 });
     const entry = inventoryMap.get(key)!;
-    entry.remaining += b.quantity - used;
+    entry.remaining += remaining;
     entry.total += b.quantity;
-    entry.remainingValue += (b.quantity - used) * b.costPerUnit;
+    entry.remainingValue += remaining * b.costPerUnit;
+    // Breakdown (only track if there's remaining stock)
+    if (remaining > 0) {
+      // Feast items aggregate under a single key
+      const bKey = b.itemType === "FEAST" ? "FEAST::Feast" : key;
+      if (!breakdownRaw.has(bKey)) breakdownRaw.set(bKey, new Map());
+      const cm = breakdownRaw.get(bKey)!;
+      cm.set(crafter.characterName, (cm.get(crafter.characterName) ?? 0) + remaining);
+    }
+  }
+  // Serialise breakdown for client component
+  const breakdown = new Map<string, { crafterName: string; remaining: number }[]>();
+  for (const [key, cm] of breakdownRaw) {
+    breakdown.set(key, [...cm.entries()].map(([crafterName, remaining]) => ({ crafterName, remaining })));
   }
   const TYPE_ORDER: Record<string, number> = { FLASK_CAULDRON: 0, POTION_CAULDRON: 1, FEAST: 2, VANTUS_RUNE: 3, OTHER: 4 };
 
@@ -175,8 +198,10 @@ export default async function DashboardPage() {
                   : pct <= 0.25 ? "text-amber-400"
                   : "text-emerald-400";
                 const type = item.itemType as Parameters<typeof ItemTypeIcon>[0]["type"];
+                const bKey = item.isFeast ? "FEAST::Feast" : `${item.itemType}::${item.itemName}`;
+                const itemBreakdown = breakdown.get(bKey) ?? [];
                 return (
-                  <div key={`${item.itemType}::${item.itemName}`} className="flex items-center gap-3 px-4 py-3">
+                  <InventoryBreakdown key={`${item.itemType}::${item.itemName}`} breakdown={itemBreakdown} className="flex items-center gap-3 px-4 py-3">
                     <ItemTypeIcon type={type} size={18} />
                     <div className="flex-1 min-w-0">
                       <ItemTypeBadge type={type} />
@@ -197,7 +222,7 @@ export default async function DashboardPage() {
                     <p className={`text-2xl font-bold shrink-0 ${numColor}`}>
                       {item.total === 0 ? "—" : item.remaining}
                     </p>
-                  </div>
+                  </InventoryBreakdown>
                 );
               })}
             </div>
@@ -213,8 +238,10 @@ export default async function DashboardPage() {
                     : pct <= 0.25 ? "text-amber-400"
                     : "text-emerald-400";
                   const type = item.itemType as Parameters<typeof ItemTypeIcon>[0]["type"];
+                  const bKey = item.isFeast ? "FEAST::Feast" : `${item.itemType}::${item.itemName}`;
+                  const itemBreakdown = breakdown.get(bKey) ?? [];
                   return (
-                    <div key={`${item.itemType}::${item.itemName}`} className="flex items-center gap-2 px-4 py-3">
+                    <InventoryBreakdown key={`${item.itemType}::${item.itemName}`} breakdown={itemBreakdown} className="flex items-center gap-2 px-4 py-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <ItemTypeIcon type={type} size={14} />
@@ -237,7 +264,7 @@ export default async function DashboardPage() {
                       <p className={`text-2xl font-bold shrink-0 ${numColor}`}>
                         {item.total === 0 ? "—" : item.remaining}
                       </p>
-                    </div>
+                    </InventoryBreakdown>
                   );
                 })}
               </div>

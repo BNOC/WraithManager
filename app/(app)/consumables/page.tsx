@@ -58,7 +58,9 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
         : b.paidAmount > 0
         ? "partial"
         : "unpaid";
-    return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus };
+    const crafterActive = (b.crafter as typeof b.crafter & { active: boolean }).active;
+    const isWasted = !crafterActive && remaining > 0;
+    return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus, crafterActive, isWasted };
   });
 
   return (
@@ -117,7 +119,13 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`border-b border-rim/50 transition-colors ${row.remaining === 0 ? "opacity-40" : "hover:bg-surface-hi/20"}`}
+                  className={`border-b border-rim/50 transition-colors ${
+                    row.isWasted
+                      ? "bg-red-950/30"
+                      : row.remaining === 0
+                      ? "opacity-40"
+                      : "hover:bg-surface-hi/20"
+                  }`}
                 >
                   <td className="px-4 py-3">
                     <div className="space-y-1">
@@ -132,10 +140,10 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={row.crafter.active ? "text-ink-dim" : "text-ink-faint"}>
+                    <span className={row.crafterActive ? "text-ink-dim" : "text-ink-faint"}>
                       {row.crafter.characterName}
                     </span>
-                    {!row.crafter.active && (
+                    {!row.crafterActive && (
                       <span className="ml-1.5 text-[10px] text-ink-faint border border-rim rounded px-1 py-px uppercase tracking-wide">inactive</span>
                     )}
                   </td>
@@ -150,8 +158,13 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {row.remaining > 0 ? (
-                      <span className={row.crafter.active ? "text-ink" : "text-ink-faint line-through"}>{row.remaining}</span>
+                    {row.isWasted ? (
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-red-400/70 line-through">{row.remaining}</span>
+                        <span className="text-[10px] text-red-400/60 font-semibold uppercase tracking-wide">Wasted</span>
+                      </div>
+                    ) : row.remaining > 0 ? (
+                      <span className="text-ink">{row.remaining}</span>
                     ) : (
                       <span className="text-ink-faint">0</span>
                     )}
