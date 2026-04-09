@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { logoutAction } from "@/app/login/actions";
 
 const NAV = [
   {
@@ -87,8 +88,9 @@ export function SideNav() {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-rim">
-          <p className="text-xs font-bold text-center" style={{ color: "#33937f" }}>@BNOC</p>
+        <div className="px-5 py-4 border-t border-rim flex items-center justify-between">
+          <p className="text-xs font-bold" style={{ color: "#33937f" }}>@BNOC</p>
+          <LogoutButton />
         </div>
       </nav>
 
@@ -155,6 +157,20 @@ export function SideNav() {
         </button>
       </nav>
     </>
+  );
+}
+
+function LogoutButton() {
+  const [pending, startTransition] = useTransition();
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      onClick={() => startTransition(() => logoutAction())}
+      className="text-xs text-ink-faint hover:text-red-400 transition-colors disabled:opacity-50"
+    >
+      {pending ? "…" : "Sign out"}
+    </button>
   );
 }
 
