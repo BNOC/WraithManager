@@ -38,8 +38,7 @@ function CrafterCard({ crafter }: { crafter: CrafterStat }) {
           )}
         </div>
         <div className="flex items-start gap-2 shrink-0 ml-3">
-          {crafter.active && (
-            <div className="text-right">
+          <div className="text-right">
               <p className={`text-base font-bold leading-tight ${crafter.totalOwed > 0 ? "text-primary" : "text-green-400"}`}>
                 {crafter.totalOwed > 0 ? formatGold(crafter.totalOwed) : "✓ Settled"}
               </p>
@@ -47,7 +46,6 @@ function CrafterCard({ crafter }: { crafter: CrafterStat }) {
                 <p className="text-ink-faint text-xs">outstanding</p>
               )}
             </div>
-          )}
           <button
             type="button"
             onClick={toggle}
