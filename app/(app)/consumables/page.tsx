@@ -66,6 +66,8 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
   });
 
   const visibleRows = hideEmpty ? rows.filter((r) => r.remaining > 0 && !r.isWasted) : rows;
+  const activeRows = visibleRows.filter((r) => r.crafterActive);
+  const inactiveRows = visibleRows.filter((r) => !r.crafterActive);
 
   return (
     <div className="space-y-6">
@@ -121,16 +123,10 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
               </tr>
             </thead>
             <tbody>
-              {visibleRows.map((row) => (
+              {activeRows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`border-b border-rim/50 transition-colors ${
-                    row.isWasted
-                      ? "bg-red-950/30"
-                      : row.remaining === 0
-                      ? "opacity-40"
-                      : "hover:bg-surface-hi/20"
-                  }`}
+                  className={`border-b border-rim/50 transition-colors ${row.remaining === 0 ? "opacity-40" : "hover:bg-surface-hi/20"}`}
                 >
                   <td className="px-4 py-3">
                     <div className="space-y-1">
@@ -143,13 +139,8 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={row.crafterActive ? "text-ink-dim" : "text-ink-faint"}>
-                      {row.crafter.characterName}
-                    </span>
-                    {!row.crafterActive && (
-                      <span className="ml-1.5 text-[10px] text-ink-faint border border-rim rounded px-1 py-px uppercase tracking-wide">inactive</span>
-                    )}
+                  <td className="px-4 py-3 whitespace-nowrap text-ink-dim">
+                    {row.crafter.characterName}
                   </td>
                   <td className="px-4 py-3 text-right text-ink">
                     {row.quantity}
@@ -162,12 +153,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {row.isWasted ? (
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span className="text-red-400/70 line-through">{row.remaining}</span>
-                        <span className="text-[10px] text-red-400/60 font-semibold uppercase tracking-wide">Wasted</span>
-                      </div>
-                    ) : row.remaining > 0 ? (
+                    {row.remaining > 0 ? (
                       <span className="text-ink">{row.remaining}</span>
                     ) : (
                       <span className="text-ink-faint">0</span>
@@ -193,6 +179,77 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                   </td>
                 </tr>
               ))}
+              {inactiveRows.length > 0 && (
+                <>
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-amber-400/70 border-y border-amber-400/20"
+                      style={{ background: "repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(245,158,11,0.06) 6px, rgba(245,158,11,0.06) 12px)" }}
+                    >
+                      Inactive Crafters
+                    </td>
+                  </tr>
+                  {inactiveRows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={`border-b border-rim/50 transition-colors ${
+                        row.isWasted
+                          ? "bg-red-950/30"
+                          : row.remaining === 0
+                          ? "opacity-40"
+                          : "hover:bg-surface-hi/20"
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 flex-nowrap">
+                            <ItemTypeIcon type={row.itemType} size={16} />
+                            <span className="text-ink font-medium">{row.itemName}</span>
+                          </div>
+                          {row.notes && (
+                            <p className="text-ink-dim text-xs">{row.notes}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-ink-faint">{row.crafter.characterName}</span>
+                        <span className="ml-1.5 text-[10px] text-ink-faint border border-rim rounded px-1 py-px uppercase tracking-wide">inactive</span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-ink">{row.quantity}</td>
+                      <td className="px-4 py-3 text-right text-ink">
+                        {row.usedQty > 0 ? (
+                          <span className="text-blue-400">{row.usedQty}</span>
+                        ) : (
+                          <span className="text-ink-faint">0</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {row.isWasted ? (
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="text-red-400/70 line-through">{row.remaining}</span>
+                            <span className="text-[10px] text-red-400/60 font-semibold uppercase tracking-wide">Wasted</span>
+                          </div>
+                        ) : row.remaining > 0 ? (
+                          <span className="text-ink">{row.remaining}</span>
+                        ) : (
+                          <span className="text-ink-faint">0</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-ink-dim">{formatGold(row.costPerUnit)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`font-medium ${row.paymentStatus === "paid" ? "line-through text-ink-faint" : "text-primary"}`}>
+                          {formatGold(row.owedAmount)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <PaymentBadge paidAmount={row.paidAmount} owedAmount={row.owedAmount} status={row.paymentStatus} />
+                      </td>
+                      <td className="px-4 py-3 text-ink-dim text-xs whitespace-nowrap">{formatDate(row.craftedAt)}</td>
+                    </tr>
+                  ))}
+                </>
+              )}
             </tbody>
           </table>
           </div>

@@ -9,7 +9,7 @@ export default async function PaymentsPage() {
     orderBy: { characterName: "asc" },
     include: {
       batches: {
-        orderBy: { craftedAt: "asc" },
+        orderBy: { craftedAt: "desc" },
         include: {
           usageLines: { select: { quantity: true, costPerUnit: true } },
         },

@@ -44,8 +44,8 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
   const [open, setOpen] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
-  const visibleRows = showAll ? batchRows : batchRows.slice(-PAGE_SIZE);
-  const hiddenCount = batchRows.length - visibleRows.length;
+  const visibleRows = showAll ? batchRows : batchRows.slice(0, PAGE_SIZE);
+  const hiddenCount = batchRows.length - PAGE_SIZE;
 
   return (
     <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
@@ -97,17 +97,6 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
             <p className="px-4 py-4 text-ink-faint text-sm">No craft batches.</p>
           ) : (
             <>
-              {hiddenCount > 0 && (
-                <div className="px-4 py-2 border-b border-rim/30 bg-surface-hi/20">
-                  <button
-                    type="button"
-                    onClick={() => setShowAll(true)}
-                    className="text-xs text-ink-faint hover:text-ink-dim transition-colors"
-                  >
-                    ↑ Show {hiddenCount} older record{hiddenCount !== 1 ? "s" : ""}
-                  </button>
-                </div>
-              )}
               <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -163,14 +152,25 @@ export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, b
                 </tbody>
               </table>
               </div>
+              {!showAll && hiddenCount > 0 && (
+                <div className="px-4 py-2.5 border-t border-rim/30 bg-surface-hi/10">
+                  <button
+                    type="button"
+                    onClick={() => setShowAll(true)}
+                    className="text-xs text-ink-faint hover:text-ink-dim transition-colors"
+                  >
+                    Show {hiddenCount} older record{hiddenCount !== 1 ? "s" : ""} ↓
+                  </button>
+                </div>
+              )}
               {showAll && batchRows.length > PAGE_SIZE && (
-                <div className="px-4 py-2 border-t border-rim/30">
+                <div className="px-4 py-2.5 border-t border-rim/30 bg-surface-hi/10">
                   <button
                     type="button"
                     onClick={() => setShowAll(false)}
                     className="text-xs text-ink-faint hover:text-ink-dim transition-colors"
                   >
-                    ↓ Show less
+                    Show less ↑
                   </button>
                 </div>
               )}
