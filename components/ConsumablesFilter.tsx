@@ -71,11 +71,7 @@ export function ConsumablesFilter({ crafters, activeCrafter, activeType, hideEmp
         <button
           type="button"
           onClick={toggleHideEmpty}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
-            hideEmpty
-              ? "bg-primary/10 border-primary/40 text-primary"
-              : "bg-surface-hi border-rim text-ink-dim hover:text-ink"
-          }`}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors bg-primary/10 border-primary/40 text-primary"
         >
           {hideEmpty ? "Showing active" : "Showing all"}
         </button>
