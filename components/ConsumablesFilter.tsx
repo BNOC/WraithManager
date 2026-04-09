@@ -21,17 +21,19 @@ interface Props {
   crafters: Crafter[];
   activeCrafter: string;
   activeType: string;
+  hideEmpty: boolean;
 }
 
-function buildUrl(crafter: string, type: string) {
+function buildUrl(crafter: string, type: string, hideEmpty: boolean) {
   const p = new URLSearchParams();
   if (crafter) p.set("crafter", crafter);
   if (type) p.set("type", type);
+  if (hideEmpty) p.set("hideEmpty", "1");
   const qs = p.toString();
   return `/consumables${qs ? `?${qs}` : ""}`;
 }
 
-export function ConsumablesFilter({ crafters, activeCrafter, activeType }: Props) {
+export function ConsumablesFilter({ crafters, activeCrafter, activeType, hideEmpty }: Props) {
   const [open, setOpen] = useState(false);
   const [crafter, setCrafter] = useState(activeCrafter);
   const [type, setType] = useState(activeType);
@@ -45,7 +47,13 @@ export function ConsumablesFilter({ crafters, activeCrafter, activeType }: Props
     setType(newType);
     setOpen(false);
     startTransition(() => {
-      router.push(buildUrl(newCrafter, newType));
+      router.push(buildUrl(newCrafter, newType, hideEmpty));
+    });
+  }
+
+  function toggleHideEmpty() {
+    startTransition(() => {
+      router.push(buildUrl(crafter, type, !hideEmpty));
     });
   }
 
@@ -60,6 +68,17 @@ export function ConsumablesFilter({ crafters, activeCrafter, activeType }: Props
     <>
       {/* Filter button */}
       <div className="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={toggleHideEmpty}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
+            hideEmpty
+              ? "bg-primary/10 border-primary/40 text-primary"
+              : "bg-surface-hi border-rim text-ink-dim hover:text-ink"
+          }`}
+        >
+          {hideEmpty ? "Showing active" : "Show all"}
+        </button>
         <button
           type="button"
           onClick={() => setOpen(true)}

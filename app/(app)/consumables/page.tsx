@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { ConsumablesFilter } from "@/components/ConsumablesFilter";
 import type { ItemType } from "@prisma/client";
@@ -19,11 +18,12 @@ function formatDate(d: Date) {
 }
 
 interface PageProps {
-  searchParams: Promise<{ crafter?: string; type?: string }>;
+  searchParams: Promise<{ crafter?: string; type?: string; hideEmpty?: string }>;
 }
 
 export default async function ConsumablesPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const hideEmpty = params.hideEmpty === "1";
 
   const crafters = await prisma.crafter.findMany({ orderBy: { name: "asc" } });
 
@@ -65,6 +65,8 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
     return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus, crafterActive, isWasted };
   });
 
+  const visibleRows = hideEmpty ? rows.filter((r) => r.remaining > 0 && !r.isWasted) : rows;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -86,11 +88,12 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
           crafters={crafters.map((c) => ({ id: c.id, name: c.name }))}
           activeCrafter={params.crafter ?? ""}
           activeType={params.type ?? ""}
+          hideEmpty={hideEmpty}
         />
       </div>
 
       {/* Table */}
-      {rows.length === 0 ? (
+      {visibleRows.length === 0 ? (
         <div className="bg-surface border border-rim rounded-2xl p-12 text-center shadow-lg shadow-black/30">
           <p className="text-ink-dim text-lg">No craft batches found.</p>
           <Link
@@ -118,7 +121,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {visibleRows.map((row) => (
                 <tr
                   key={row.id}
                   className={`border-b border-rim/50 transition-colors ${
@@ -134,7 +137,6 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                       <div className="flex items-center gap-1.5 flex-nowrap">
                         <ItemTypeIcon type={row.itemType} size={16} />
                         <span className="text-ink font-medium">{row.itemName}</span>
-                        <span className="hidden sm:inline-flex"><ItemTypeBadge type={row.itemType} small /></span>
                       </div>
                       {row.notes && (
                         <p className="text-ink-dim text-xs">{row.notes}</p>
