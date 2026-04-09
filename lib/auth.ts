@@ -9,6 +9,8 @@ const USERS: Record<string, string> = {
   BNOC: "Riley4",
   Phae: "bigdruid",
   Hafad: "bigdk",
+  React: "bigdh",
+  Cassy: "bigpriest",
 };
 
 function getSecret(): string {

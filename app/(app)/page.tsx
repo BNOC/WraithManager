@@ -68,11 +68,16 @@ export default async function DashboardPage() {
   const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number; remainingValue: number }>();
   // Per-crafter breakdown: key → crafterName → remaining
   const breakdownRaw = new Map<string, Map<string, number>>();
+  let grandWastedValue = 0;
   for (const b of allBatches) {
     const crafter = b.crafter as BatchCrafter;
     // Tradeable items (VANTUS_RUNE) can be passed to other players — count all stock regardless of crafter status
     const isWarbound = b.itemType !== "VANTUS_RUNE";
-    if (isWarbound && !crafter.active) continue; // warbound inactive crafter stock is wasted
+    if (isWarbound && !crafter.active) {
+      const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
+      grandWastedValue += (b.quantity - used) * b.costPerUnit;
+      continue; // warbound inactive crafter stock is wasted
+    }
     const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
     const remaining = b.quantity - used;
     const key = `${b.itemType}::${b.itemName}`;
@@ -147,12 +152,12 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-4 divide-x divide-rim">
           {[
-            { label: "Outstanding", shortLabel: "Owed", value: formatGold(grandOutstanding), abbr: formatGoldAbbr(grandOutstanding), accent: true },
-            { label: "Total Paid", shortLabel: "Paid", value: formatGold(grandTotalPaid), abbr: formatGoldAbbr(grandTotalPaid), accent: false },
-            { label: "Inventory Value", shortLabel: "Inv.", value: formatGold(totalInventoryValue), abbr: formatGoldAbbr(totalInventoryValue), accent: false },
-            { label: "Total Spent", shortLabel: "Spent", value: formatGold(grandTotalCost), abbr: formatGoldAbbr(grandTotalCost), accent: false },
-          ].map(({ label, shortLabel, value, abbr, accent }) => (
-            <div key={label} className={`relative px-4 sm:px-7 py-4 sm:py-6 ${accent ? "bg-primary/[0.05]" : ""}`}>
+            { label: "Outstanding", shortLabel: "Owed", value: formatGold(grandOutstanding), abbr: formatGoldAbbr(grandOutstanding), accent: true, sub: null },
+            { label: "Total Paid", shortLabel: "Paid", value: formatGold(grandTotalPaid), abbr: formatGoldAbbr(grandTotalPaid), accent: false, sub: grandWastedValue > 0 ? `${formatGoldAbbr(grandWastedValue)} wasted` : null },
+            { label: "Inventory Value", shortLabel: "Inv.", value: formatGold(totalInventoryValue), abbr: formatGoldAbbr(totalInventoryValue), accent: false, sub: null },
+            { label: "Total Spent", shortLabel: "Spent", value: formatGold(grandTotalCost), abbr: formatGoldAbbr(grandTotalCost), accent: false, sub: null },
+          ].map(({ label, shortLabel, value, abbr, accent, sub }) => (
+            <div key={label} className={`relative px-4 sm:px-7 py-4 sm:py-6 ${accent ? "bg-primary/5" : ""}`}>
               {accent && <div className="absolute top-0 inset-x-0 h-0.5 bg-primary/50" />}
               <p className="text-ink-faint text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest">
                 <span className="sm:hidden">{shortLabel}</span>
@@ -162,6 +167,7 @@ export default async function DashboardPage() {
                 <span className="sm:hidden">{abbr}</span>
                 <span className="hidden sm:inline">{value}</span>
               </p>
+              {sub && <p className="text-amber-400/60 text-[10px] mt-1.5 font-medium">{sub}</p>}
               {accent && (
                 <div className="hidden sm:flex items-center gap-1 mt-3">
                   <div className="h-0.5 w-8 bg-primary/50 rounded-full" />
@@ -411,12 +417,7 @@ export default async function DashboardPage() {
                     <td className="px-5 py-3.5 text-ink-dim hidden sm:table-cell">{b.crafter.characterName}</td>
                     <td className="px-5 py-3.5 text-right text-ink">{b.quantity}</td>
                     <td className="px-5 py-3.5 text-right text-primary font-medium">{formatGold(b.quantity * b.costPerUnit)}</td>
-                    <td className="px-5 py-3.5 hidden md:table-cell">
-                      <div className="flex items-center gap-1.5">
-                        <RaidDayBadge date={b.craftedAt} />
-                        <span className="text-ink-dim text-xs">{formatDate(b.craftedAt)}</span>
-                      </div>
-                    </td>
+                    <td className="px-5 py-3.5 text-ink-dim text-xs hidden md:table-cell">{formatDate(b.craftedAt)}</td>
                   </tr>
                 ))}
               </tbody>
