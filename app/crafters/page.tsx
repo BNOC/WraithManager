@@ -26,6 +26,7 @@ export default async function CraftersPage() {
     return {
       id: crafter.id,
       name: crafter.name,
+      active: (crafter as typeof crafter & { active: boolean }).active,
       batchCount: crafter.batches.length,
       totalCraftedValue,
       totalOwed: Math.max(0, totalOwed),

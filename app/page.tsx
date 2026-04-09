@@ -51,8 +51,9 @@ export default async function DashboardPage() {
     return { ...crafter, totalOwed, totalPaid, outstanding };
   });
 
-  const grandOutstanding = crafterSummaries.reduce((s, c) => s + c.outstanding, 0);
-  const grandTotalPaid = crafterSummaries.reduce((s: number, c: { totalPaid: number }) => s + c.totalPaid, 0);
+  const activeSummaries = crafterSummaries.filter((c) => (c as typeof c & { active: boolean }).active);
+  const grandOutstanding = activeSummaries.reduce((s, c) => s + c.outstanding, 0);
+  const grandTotalPaid = activeSummaries.reduce((s, c) => s + c.totalPaid, 0);
   const grandTotalCost = allBatches.reduce((s: number, b: { costPerUnit: number; usageLines: { quantity: number }[] }) => {
     const used = b.usageLines.reduce((u: number, l: { quantity: number }) => u + l.quantity, 0);
     return s + used * b.costPerUnit;
@@ -258,7 +259,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {crafterSummaries.map((c) => (
+              {activeSummaries.map((c) => (
                 <div key={c.id} className="bg-surface border border-rim rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg shadow-black/20">
                   <p className="font-semibold text-ink">{c.characterName}</p>
                   <div className="flex items-center gap-4">

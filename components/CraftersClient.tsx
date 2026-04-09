@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { createCrafter } from "@/lib/actions";
+import { useState, useTransition } from "react";
+import { createCrafter, setCrafterActive } from "@/lib/actions";
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -10,6 +10,7 @@ function formatGold(n: number) {
 export interface CrafterStat {
   id: string;
   name: string;
+  active: boolean;
   batchCount: number;
   totalCraftedValue: number;
   totalPaid: number;
@@ -20,8 +21,71 @@ interface Props {
   crafters: CrafterStat[];
 }
 
+function CrafterCard({ crafter }: { crafter: CrafterStat }) {
+  const [pending, startTransition] = useTransition();
+
+  function toggle() {
+    startTransition(() => setCrafterActive(crafter.id, !crafter.active));
+  }
+
+  return (
+    <div className={`bg-surface border rounded-2xl p-4 shadow-lg shadow-black/30 transition-opacity ${crafter.active ? "border-rim" : "border-rim/50 opacity-60"}`}>
+      <div className="flex items-start justify-between mb-4">
+        <div className="min-w-0">
+          <h3 className="font-bold text-ink text-lg leading-tight truncate">{crafter.name}</h3>
+          {!crafter.active && (
+            <span className="text-xs text-ink-faint font-medium uppercase tracking-wider">Inactive</span>
+          )}
+        </div>
+        <div className="flex items-start gap-2 shrink-0 ml-3">
+          {crafter.active && (
+            <div className="text-right">
+              <p className={`text-base font-bold leading-tight ${crafter.totalOwed > 0 ? "text-primary" : "text-green-400"}`}>
+                {crafter.totalOwed > 0 ? formatGold(crafter.totalOwed) : "✓ Settled"}
+              </p>
+              {crafter.totalOwed > 0 && (
+                <p className="text-ink-faint text-xs">outstanding</p>
+              )}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={toggle}
+            disabled={pending}
+            title={crafter.active ? "Mark as inactive" : "Mark as active"}
+            className={`text-xs px-2 py-1 rounded-lg border transition-colors disabled:opacity-50 ${
+              crafter.active
+                ? "border-rim text-ink-faint hover:border-red-500/40 hover:text-red-400"
+                : "border-primary/40 text-primary hover:opacity-80"
+            }`}
+          >
+            {pending ? "…" : crafter.active ? "Deactivate" : "Reactivate"}
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-xs border-t border-rim pt-3">
+        <div>
+          <p className="text-ink-faint mb-0.5">Batches</p>
+          <p className="text-ink font-semibold">{crafter.batchCount}</p>
+        </div>
+        <div>
+          <p className="text-ink-faint mb-0.5">Crafted</p>
+          <p className="text-ink font-semibold">{formatGold(crafter.totalCraftedValue)}</p>
+        </div>
+        <div>
+          <p className="text-ink-faint mb-0.5">Paid</p>
+          <p className="text-green-400 font-semibold">{formatGold(crafter.totalPaid)}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CraftersClient({ crafters }: Props) {
   const [formOpen, setFormOpen] = useState(false);
+
+  const active = crafters.filter((c) => c.active);
+  const inactive = crafters.filter((c) => !c.active);
 
   return (
     <div className="space-y-6">
@@ -30,7 +94,9 @@ export function CraftersClient({ crafters }: Props) {
         <div>
           <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Config</p>
           <h1 className="text-3xl font-bold text-ink">Crafters</h1>
-          <p className="text-ink-dim mt-1 text-sm">{crafters.length} crafter{crafters.length !== 1 ? "s" : ""}</p>
+          <p className="text-ink-dim mt-1 text-sm">
+            {active.length} active{inactive.length > 0 ? ` · ${inactive.length} inactive` : ""}
+          </p>
         </div>
         <button
           type="button"
@@ -76,46 +142,32 @@ export function CraftersClient({ crafters }: Props) {
         </form>
       )}
 
-      {/* Crafter cards */}
-      {crafters.length === 0 ? (
+      {/* Active crafters */}
+      {active.length === 0 && inactive.length === 0 ? (
         <div className="bg-surface border border-rim rounded-2xl p-12 text-center shadow-lg shadow-black/30">
           <p className="text-ink-dim">No crafters yet. Add one above!</p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {crafters.map((crafter) => (
-            <div
-              key={crafter.id}
-              className="bg-surface border border-rim rounded-2xl p-4 shadow-lg shadow-black/30"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="font-bold text-ink text-lg leading-tight">{crafter.name}</h3>
-                <div className="text-right shrink-0 ml-3">
-                  <p className={`text-base font-bold leading-tight ${crafter.totalOwed > 0 ? "text-primary" : "text-green-400"}`}>
-                    {crafter.totalOwed > 0 ? formatGold(crafter.totalOwed) : "✓ Settled"}
-                  </p>
-                  {crafter.totalOwed > 0 && (
-                    <p className="text-ink-faint text-xs">outstanding</p>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-xs border-t border-rim pt-3">
-                <div>
-                  <p className="text-ink-faint mb-0.5">Batches</p>
-                  <p className="text-ink font-semibold">{crafter.batchCount}</p>
-                </div>
-                <div>
-                  <p className="text-ink-faint mb-0.5">Crafted</p>
-                  <p className="text-ink font-semibold">{formatGold(crafter.totalCraftedValue)}</p>
-                </div>
-                <div>
-                  <p className="text-ink-faint mb-0.5">Paid</p>
-                  <p className="text-green-400 font-semibold">{formatGold(crafter.totalPaid)}</p>
-                </div>
+        <>
+          {active.length > 0 && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {active.map((crafter) => (
+                <CrafterCard key={crafter.id} crafter={crafter} />
+              ))}
+            </div>
+          )}
+
+          {inactive.length > 0 && (
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-ink-faint mb-3">Inactive</h2>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {inactive.map((crafter) => (
+                  <CrafterCard key={crafter.id} crafter={crafter} />
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

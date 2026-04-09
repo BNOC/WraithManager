@@ -13,7 +13,7 @@ export default async function EditUsagePage({ params }: PageProps) {
 
   const [log, crafters, batches, presets] = await Promise.all([
     prisma.usageLog.findUnique({ where: { id } }),
-    prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
+    prisma.crafter.findMany({ where: { active: true }, orderBy: { characterName: "asc" } }),
     prisma.craftBatch.findMany({
       orderBy: { craftedAt: "asc" },
       include: {

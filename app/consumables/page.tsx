@@ -131,8 +131,13 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-ink-dim whitespace-nowrap">
-                    {row.crafter.characterName}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className={row.crafter.active ? "text-ink-dim" : "text-ink-faint"}>
+                      {row.crafter.characterName}
+                    </span>
+                    {!row.crafter.active && (
+                      <span className="ml-1.5 text-[10px] text-ink-faint border border-rim rounded px-1 py-px uppercase tracking-wide">inactive</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right text-ink">
                     {row.quantity}
@@ -146,7 +151,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {row.remaining > 0 ? (
-                      <span className="text-ink">{row.remaining}</span>
+                      <span className={row.crafter.active ? "text-ink" : "text-ink-faint line-through"}>{row.remaining}</span>
                     ) : (
                       <span className="text-ink-faint">0</span>
                     )}

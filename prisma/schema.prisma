@@ -14,6 +14,7 @@ model Crafter {
   id            String       @id @default(cuid())
   name          String
   characterName String
+  active        Boolean      @default(true)
   createdAt     DateTime     @default(now())
   batches       CraftBatch[]
   usageLogs     UsageLog[]
