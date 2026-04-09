@@ -59,7 +59,9 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
         ? "partial"
         : "unpaid";
     const crafterActive = (b.crafter as typeof b.crafter & { active: boolean }).active;
-    const isWasted = !crafterActive && remaining > 0;
+    // Tradeable items (VANTUS_RUNE) can be passed to other players — not wasted when crafter leaves
+    const isWarbound = b.itemType !== "VANTUS_RUNE";
+    const isWasted = !crafterActive && remaining > 0 && isWarbound;
     return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus, crafterActive, isWasted };
   });
 

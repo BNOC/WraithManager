@@ -70,22 +70,25 @@ export default async function DashboardPage() {
   const breakdownRaw = new Map<string, Map<string, number>>();
   for (const b of allBatches) {
     const crafter = b.crafter as BatchCrafter;
+    // Tradeable items (VANTUS_RUNE) can be passed to other players — count all stock regardless of crafter status
+    const isWarbound = b.itemType !== "VANTUS_RUNE";
+    if (isWarbound && !crafter.active) continue; // warbound inactive crafter stock is wasted
     const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
     const remaining = b.quantity - used;
-    if (!crafter.active) continue; // skip inactive crafter stock
     const key = `${b.itemType}::${b.itemName}`;
     if (!inventoryMap.has(key)) inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0, remainingValue: 0 });
     const entry = inventoryMap.get(key)!;
     entry.remaining += remaining;
     entry.total += b.quantity;
     entry.remainingValue += remaining * b.costPerUnit;
-    // Breakdown (only track if there's remaining stock)
+    // Breakdown — only track batches with remaining stock
     if (remaining > 0) {
-      // Feast items aggregate under a single key
       const bKey = b.itemType === "FEAST" ? "FEAST::Feast" : key;
       if (!breakdownRaw.has(bKey)) breakdownRaw.set(bKey, new Map());
       const cm = breakdownRaw.get(bKey)!;
-      cm.set(crafter.characterName, (cm.get(crafter.characterName) ?? 0) + remaining);
+      // Mark inactive crafters in breakdown (only possible for tradeable items)
+      const label = crafter.active ? crafter.characterName : `${crafter.characterName} (inactive)`;
+      cm.set(label, (cm.get(label) ?? 0) + remaining);
     }
   }
   // Serialise breakdown for client component
