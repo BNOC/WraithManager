@@ -77,7 +77,7 @@ export function ConsumablesFilter({ crafters, activeCrafter, activeType, hideEmp
               : "bg-surface-hi border-rim text-ink-dim hover:text-ink"
           }`}
         >
-          {hideEmpty ? "Showing active" : "Show all"}
+          {hideEmpty ? "Showing active" : "Showing all"}
         </button>
         <button
           type="button"

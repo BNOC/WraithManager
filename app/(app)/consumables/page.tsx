@@ -62,12 +62,13 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
     // Tradeable items (VANTUS_RUNE) can be passed to other players — not wasted when crafter leaves
     const isWarbound = b.itemType !== "VANTUS_RUNE";
     const isWasted = !crafterActive && remaining > 0 && isWarbound;
-    return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus, crafterActive, isWasted };
+    return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus, crafterActive, isWarbound, isWasted };
   });
 
   const visibleRows = hideEmpty ? rows.filter((r) => r.remaining > 0 && !r.isWasted) : rows;
-  const activeRows = visibleRows.filter((r) => r.crafterActive);
-  const inactiveRows = visibleRows.filter((r) => !r.crafterActive);
+  // Tradeable items (VANTUS_RUNE) are never crafter-locked — always in the active section
+  const activeRows = visibleRows.filter((r) => r.crafterActive || !r.isWarbound);
+  const inactiveRows = visibleRows.filter((r) => !r.crafterActive && r.isWarbound);
 
   return (
     <div className="space-y-6">

@@ -54,8 +54,8 @@ export default async function PaymentsPage() {
         </p>
       </div>
 
-      {/* Per-crafter sections */}
-      {crafterStats.map((crafter) => (
+      {/* Active crafters */}
+      {crafterStats.filter((c) => (c as typeof c & { active: boolean }).active).map((crafter) => (
         <CrafterPayCard
           key={crafter.id}
           id={crafter.id}
@@ -66,6 +66,29 @@ export default async function PaymentsPage() {
           batchRows={crafter.batchRows}
         />
       ))}
+
+      {/* Inactive crafters */}
+      {crafterStats.filter((c) => !(c as typeof c & { active: boolean }).active).length > 0 && (
+        <div className="space-y-4">
+          <div
+            className="flex items-center gap-3 px-3 py-2 rounded-xl border border-amber-400/20"
+            style={{ background: "repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(245,158,11,0.05) 6px, rgba(245,158,11,0.05) 12px)" }}
+          >
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-400/70">Inactive Crafters</span>
+          </div>
+          {crafterStats.filter((c) => !(c as typeof c & { active: boolean }).active).map((crafter) => (
+            <CrafterPayCard
+              key={crafter.id}
+              id={crafter.id}
+              characterName={crafter.characterName}
+              totalOwed={crafter.totalOwed}
+              totalPaid={crafter.totalPaid}
+              balance={crafter.balance}
+              batchRows={crafter.batchRows}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
