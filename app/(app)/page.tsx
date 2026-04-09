@@ -56,8 +56,8 @@ export default async function DashboardPage() {
   });
 
   const activeSummaries = crafterSummaries.filter((c) => (c as typeof c & { active: boolean }).active);
-  const grandOutstanding = activeSummaries.reduce((s, c) => s + c.outstanding, 0);
-  const grandTotalPaid = activeSummaries.reduce((s, c) => s + c.totalPaid, 0);
+  const grandOutstanding = crafterSummaries.reduce((s, c) => s + c.outstanding, 0);
+  const grandTotalPaid = crafterSummaries.reduce((s, c) => s + c.totalPaid, 0);
   const grandTotalCost = allBatches.reduce((s: number, b: { costPerUnit: number; usageLines: { quantity: number }[] }) => {
     const used = b.usageLines.reduce((u: number, l: { quantity: number }) => u + l.quantity, 0);
     return s + used * b.costPerUnit;
