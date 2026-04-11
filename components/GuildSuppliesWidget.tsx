@@ -26,7 +26,7 @@ export async function GuildSuppliesWidget() {
 
   return (
     <div
-      className="mx-3 mb-3 rounded-xl border border-primary/25 overflow-hidden"
+      className="mx-3 mb-3 rounded-xl border border-primary/25 relative overflow-hidden"
       style={{ background: "var(--color-surface)" }}
     >
       {/* Dot-grid background layer */}

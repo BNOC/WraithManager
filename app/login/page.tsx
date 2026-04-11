@@ -18,23 +18,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-ink tracking-tight">
-            Wraith<span className="text-primary">Debt</span>
-          </h1>
-          <p className="text-ink-dim text-sm mt-1">Guild consumables tracker</p>
-        </div>
+    <div className="min-h-screen bg-canvas flex">
+      {/* ── Left: login form ── */}
+      <div className="w-full md:w-2/3 flex flex-col items-center justify-center px-8 py-12">
+        <div className="w-full max-w-sm">
+          {/* Logo */}
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold text-ink tracking-tight">
+              Wraith<span className="text-primary">Debt</span>
+            </h1>
+            <p className="text-ink-dim text-sm mt-1.5">Guild consumables tracker</p>
+          </div>
 
-        {/* Card */}
-        <div className="bg-surface border border-rim rounded-2xl p-6 shadow-2xl shadow-black/50">
-          <p className="text-ink font-semibold text-lg mb-5">Sign in</p>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="username" className="block text-xs font-medium text-ink-dim mb-1.5">
+              <label htmlFor="username" className="block text-xs font-medium text-ink-dim mb-1.5 uppercase tracking-widest">
                 Username
               </label>
               <input
@@ -44,13 +43,13 @@ export default function LoginPage() {
                 required
                 autoComplete="username"
                 autoFocus
-                className="w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                className="w-full bg-surface border border-rim rounded-xl px-4 py-3 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
                 placeholder="Your name"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs font-medium text-ink-dim mb-1.5">
+              <label htmlFor="password" className="block text-xs font-medium text-ink-dim mb-1.5 uppercase tracking-widest">
                 Password
               </label>
               <input
@@ -59,7 +58,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 autoComplete="current-password"
-                className="w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                className="w-full bg-surface border border-rim rounded-xl px-4 py-3 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
                 placeholder="••••••••"
               />
             </div>
@@ -71,16 +70,26 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="w-full bg-primary hover:opacity-90 text-white font-semibold py-2.5 rounded-xl transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full bg-primary hover:opacity-90 text-white font-semibold py-3 rounded-xl transition-opacity disabled:opacity-50 disabled:cursor-not-allowed text-sm mt-2"
             >
               {isPending ? "Signing in…" : "Sign in"}
             </button>
           </form>
-        </div>
 
-        <p className="text-center text-ink-faint text-xs mt-6">
-          Wraith Gaming · Internal tool
-        </p>
+          <p className="text-ink-faint text-xs mt-12">@BNOC</p>
+        </div>
+      </div>
+
+      {/* ── Right: full-bleed image ── */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <div className="hidden md:flex md:w-1/3 relative self-stretch">
+        <img
+          src="/images/login_bg4.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Inner shadow on the left edge to blend into the form side */}
+        <div className="absolute inset-0 bg-linear-to-r from-canvas/60 via-transparent to-transparent" />
       </div>
     </div>
   );
