@@ -27,7 +27,7 @@ const NAV = [
 // Mobile bottom nav — main items only so labels fit
 const MOBILE_NAV = NAV[0].items;
 
-export function SideNav() {
+export function SideNav({ widget }: { widget?: React.ReactNode }) {
   const pathname = usePathname();
   const [configOpen, setConfigOpen] = useState(false);
 
@@ -86,6 +86,9 @@ export function SideNav() {
             </div>
           ))}
         </div>
+
+        {/* Guild supplies widget */}
+        {widget}
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-rim flex items-center justify-between">

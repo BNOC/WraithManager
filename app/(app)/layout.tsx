@@ -2,11 +2,12 @@ import { SideNav } from "@/components/SideNav";
 import { ThemePicker } from "@/components/ThemePicker";
 import { MobileThemeButton } from "@/components/MobileThemeButton";
 import { MobileLogoutButton } from "@/components/MobileLogoutButton";
+import { GuildSuppliesWidget } from "@/components/GuildSuppliesWidget";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <SideNav />
+      <SideNav widget={<GuildSuppliesWidget />} />
 
       <main className="flex-1 min-w-0 md:ml-60 min-h-screen flex flex-col">
         {/* Top header — mobile only */}
