@@ -27,7 +27,7 @@ export default async function EditRaidNightPage({ params }: { params: Promise<{ 
   if (logs.length === 0) notFound();
 
   const batchSummaries = batches
-    .filter((b) => b.crafter.active)
+    .filter((b) => b.crafter.active || b.itemType === "VANTUS_RUNE")
     .map((b) => ({
       itemType: b.itemType,
       itemName: b.itemName,
