@@ -29,10 +29,12 @@ export function ConsumableForm({
   crafters,
   defaultPrices = {},
   today,
+  defaultCrafterId = null,
 }: {
   crafters: Crafter[];
   defaultPrices?: DefaultPrices;
-  today: string; // ISO date string, passed from server to avoid client/server mismatch
+  today: string;
+  defaultCrafterId?: string | null;
 }) {
   const [itemType, setItemType] = useState("FLASK_CAULDRON");
   const [costPerUnit, setCostPerUnit] = useState(
@@ -107,7 +109,7 @@ export function ConsumableForm({
         <label htmlFor="crafterId" className={labelClass}>
           Crafter <span className="text-red-400">*</span>
         </label>
-        <select id="crafterId" name="crafterId" required className={selectClass}>
+        <select id="crafterId" name="crafterId" required defaultValue={defaultCrafterId ?? undefined} className={selectClass}>
           {crafters.map((c) => (
             <option key={c.id} value={c.id}>
               {c.characterName}

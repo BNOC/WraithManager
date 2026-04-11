@@ -91,8 +91,8 @@ export default async function DashboardPage() {
       const bKey = b.itemType === "FEAST" ? "FEAST::Feast" : key;
       if (!breakdownRaw.has(bKey)) breakdownRaw.set(bKey, new Map());
       const cm = breakdownRaw.get(bKey)!;
-      // Mark inactive crafters in breakdown (only possible for tradeable items)
-      const label = crafter.active ? crafter.characterName : `${crafter.characterName} (inactive)`;
+      // Vantus Runes are tradeable — show as Guild Bank regardless of crafter
+      const label = b.itemType === "VANTUS_RUNE" ? "Guild Bank" : crafter.active ? crafter.characterName : `${crafter.characterName} (inactive)`;
       cm.set(label, (cm.get(label) ?? 0) + remaining);
     }
   }

@@ -1,10 +1,15 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { ConsumableForm } from "@/components/ConsumableForm";
+import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export default async function NewConsumablePage() {
+  const cookieStore = await cookies();
+  const username = await verifySessionToken(cookieStore.get(SESSION_COOKIE)?.value);
+
   const [crafters, allPrices] = await Promise.all([
     prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
     prisma.priceConfig.findMany({ orderBy: { effectiveDate: "desc" } }),
@@ -16,6 +21,7 @@ export default async function NewConsumablePage() {
   }
 
   const today = new Date().toISOString().slice(0, 10);
+  const defaultCrafterId = crafters.find((c) => c.name === username)?.id ?? null;
 
   if (crafters.length === 0) {
     return (
@@ -42,7 +48,7 @@ export default async function NewConsumablePage() {
         <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Craft Log</p>
         <h1 className="text-3xl font-bold text-ink">Log Craft</h1>
       </div>
-      <ConsumableForm crafters={crafters} defaultPrices={defaultPrices} today={today} />
+      <ConsumableForm crafters={crafters} defaultPrices={defaultPrices} today={today} defaultCrafterId={defaultCrafterId} />
     </div>
   );
 }
