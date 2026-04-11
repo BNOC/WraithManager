@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createRaidNightUsage, createNotePreset, updateNotePreset, deleteNotePreset, type RaidNightEntry } from "@/lib/actions";
+import { createRaidNightUsage, updateRaidNight, createNotePreset, updateNotePreset, deleteNotePreset, type RaidNightEntry } from "@/lib/actions";
 import { DateInput } from "@/components/DateInput";
 
 interface Crafter {
@@ -40,7 +40,7 @@ const selectClass =
 const inputClass =
   "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
 
-type EntryState = {
+export type EntryState = {
   key: number;
   itemType: string;
   itemName: string;
@@ -58,16 +58,20 @@ export function RaidNightForm({
   batches,
   today,
   presets: initialPresets,
+  initialEntries,
+  logIdsToDelete,
 }: {
   crafters: Crafter[];
   batches: BatchSummary[];
   today: string;
   presets: NotePreset[];
+  initialEntries?: EntryState[];
+  logIdsToDelete?: string[];
 }) {
   const router = useRouter();
   const [raidDate, setRaidDate] = useState(today);
-  const [entries, setEntries] = useState<EntryState[]>([makeEntry(0)]);
-  const [nextKey, setNextKey] = useState(1);
+  const [entries, setEntries] = useState<EntryState[]>(() => initialEntries ?? [makeEntry(0)]);
+  const [nextKey, setNextKey] = useState(() => initialEntries ? initialEntries.length : 1);
   const [presets, setPresets] = useState<NotePreset[]>(initialPresets);
   const [isSubmitting, startSubmit] = useTransition();
   const [isAddingPreset, startAddPreset] = useTransition();
@@ -140,7 +144,11 @@ export function RaidNightForm({
     });
 
     startSubmit(async () => {
-      await createRaidNightUsage(raidDate, toCreate);
+      if (logIdsToDelete) {
+        await updateRaidNight(logIdsToDelete, raidDate, toCreate);
+      } else {
+        await createRaidNightUsage(raidDate, toCreate);
+      }
     });
   }
 
@@ -338,7 +346,7 @@ export function RaidNightForm({
           disabled={isSubmitting || !canSubmit || !raidDate}
           className="bg-primary hover:opacity-90 text-white font-semibold px-6 py-2.5 rounded-xl transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? "Saving…" : `Log ${entries.length} Item${entries.length !== 1 ? "s" : ""}`}
+          {isSubmitting ? "Saving…" : logIdsToDelete ? "Save Changes" : `Log ${entries.length} Item${entries.length !== 1 ? "s" : ""}`}
         </button>
         <Link
           href="/usage"

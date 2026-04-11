@@ -54,18 +54,18 @@ export interface UsageNightCardProps {
   logs: UsageLogRow[];
 }
 
-export function UsageNightCard({ raidDate, nightValue, logs }: UsageNightCardProps) {
+export function UsageNightCard({ dateKey, raidDate, nightValue, logs }: UsageNightCardProps) {
   const [open, setOpen] = useState(true);
 
   return (
     <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">
       {/* Night header — click to collapse */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full px-4 py-3 border-b border-rim bg-surface-hi/40 flex items-center justify-between gap-3 flex-wrap hover:bg-surface-hi/60 transition-colors text-left"
-      >
-        <div className="flex items-center gap-3">
+      <div className="px-4 py-3 border-b border-rim bg-surface-hi/40 flex items-center justify-between gap-3 flex-wrap">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity text-left"
+        >
           <svg
             width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
             className={`text-ink-faint shrink-0 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
@@ -75,11 +75,19 @@ export function UsageNightCard({ raidDate, nightValue, logs }: UsageNightCardPro
           <RaidDayBadge date={new Date(raidDate)} />
           <span className="text-ink font-semibold">{formatDate(raidDate)}</span>
           <span className="text-ink-dim text-sm">{logs.length} item{logs.length !== 1 ? "s" : ""}</span>
+        </button>
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-primary font-medium text-sm">
+            {nightValue > 0 ? formatGold(nightValue) : "—"}
+          </span>
+          <Link
+            href={`/usage/night/${dateKey}/edit`}
+            className="text-xs text-ink-faint hover:text-primary transition-colors"
+          >
+            Edit
+          </Link>
         </div>
-        <span className="text-primary font-medium text-sm">
-          {nightValue > 0 ? formatGold(nightValue) : "—"}
-        </span>
-      </button>
+      </div>
 
       {/* Collapsible body */}
       {open && (
@@ -107,17 +115,9 @@ export function UsageNightCard({ raidDate, nightValue, logs }: UsageNightCardPro
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-ink-dim text-sm font-medium">
-                      {log.lineValue > 0 ? formatGoldAbbr(log.lineValue) : "—"}
-                    </span>
-                    <Link
-                      href={`/usage/${log.id}/edit`}
-                      className="text-xs text-ink-faint hover:text-primary transition-colors"
-                    >
-                      Edit
-                    </Link>
-                  </div>
+                  <span className="text-ink-dim text-sm font-medium shrink-0">
+                    {log.lineValue > 0 ? formatGoldAbbr(log.lineValue) : "—"}
+                  </span>
                 </div>
 
                 {/* Attribution lines */}

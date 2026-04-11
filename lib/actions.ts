@@ -267,6 +267,29 @@ export async function updateUsageLog(id: string, raidDate: string, entry: RaidNi
   redirect("/usage");
 }
 
+export async function updateRaidNight(logIds: string[], newDate: string, entries: RaidNightEntry[]) {
+  const date = new Date(newDate);
+  await prisma.$transaction(async (tx) => {
+    await tx.usageLine.deleteMany({ where: { usageLogId: { in: logIds } } });
+    await tx.usageLog.deleteMany({ where: { id: { in: logIds } } });
+    for (const entry of entries) {
+      await fifoAttributeUsage(tx, {
+        raidDate: date,
+        itemType: entry.itemType as ItemType,
+        itemName: entry.itemName,
+        quantityUsed: entry.quantityUsed,
+        crafterId: entry.crafterId,
+        notes: entry.notes,
+      });
+    }
+  });
+  revalidatePath("/usage");
+  revalidatePath("/consumables");
+  revalidatePath("/payments");
+  revalidatePath("/");
+  redirect("/usage");
+}
+
 // ---- Payment actions ----
 
 export async function updateBatchPaidAmount(batchId: string, amount: number) {
