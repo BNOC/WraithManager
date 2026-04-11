@@ -16,7 +16,7 @@ export default async function EditRaidNightPage({ params }: { params: Promise<{ 
       where: { raidDate: { gte: start, lte: end } },
       orderBy: { raidDate: "asc" },
     }),
-    prisma.crafter.findMany({ where: { active: true }, orderBy: { characterName: "asc" } }),
+    prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
     prisma.craftBatch.findMany({
       orderBy: { craftedAt: "asc" },
       include: { crafter: true, usageLines: { select: { quantity: true } } },

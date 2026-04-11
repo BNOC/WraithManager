@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createRaidNightUsage, updateRaidNight, createNotePreset, updateNotePreset, deleteNotePreset, type RaidNightEntry } from "@/lib/actions";
@@ -9,6 +9,7 @@ import { DateInput } from "@/components/DateInput";
 interface Crafter {
   id: string;
   characterName: string;
+  active: boolean;
 }
 
 interface BatchSummary {
@@ -383,6 +384,22 @@ function EntryRow({
   const autoName = AUTO_NAMES[entry.itemType];
   const showNameDropdown = entry.itemType === "FEAST";
   const showNameInput = !autoName && entry.itemType !== "FEAST";
+  const isVantus = entry.itemType === "VANTUS_RUNE";
+  const resolvedName = autoName ?? entry.itemName;
+
+  // Filter crafter list: only those with stock for this item; inactive only allowed for Vantus Rune
+  const crafterIdsWithStock = new Set(stock.available.map((b) => b.crafterId));
+  const craftersToShow = resolvedName
+    ? crafters.filter((c) => (isVantus || c.active) && crafterIdsWithStock.has(c.id))
+    : crafters.filter((c) => isVantus || c.active);
+
+  // Auto-select when exactly one crafter has stock
+  const singleCrafterId = craftersToShow.length === 1 ? craftersToShow[0].id : null;
+  useEffect(() => {
+    if (singleCrafterId && entry.crafterId !== singleCrafterId) {
+      onUpdate({ crafterId: singleCrafterId });
+    }
+  }, [singleCrafterId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="bg-surface border border-rim rounded-2xl p-5 space-y-4 shadow-lg shadow-black/20">
@@ -474,23 +491,32 @@ function EntryRow({
           <label className="block text-xs font-medium text-ink-dim mb-1">
             Crafter <span className="text-red-400">*</span>
           </label>
-          <select
-            value={entry.crafterId}
-            onChange={(e) => onUpdate({ crafterId: e.target.value })}
-            className={selectClass}
-          >
-            <option value="">Select crafter…</option>
-            {crafters.map((c) => {
-              const crafterStock = (autoName || entry.itemName)
-                ? getCrafterStock(c.id, entry.itemType, entry.itemName)
-                : null;
-              return (
-                <option key={c.id} value={c.id}>
-                  {c.characterName}{crafterStock !== null ? ` (${crafterStock} available)` : ""}
-                </option>
-              );
-            })}
-          </select>
+          {craftersToShow.length === 1 ? (
+            <div className={`${inputClass} cursor-default flex items-center justify-between`}>
+              <span className="text-ink">{craftersToShow[0].characterName}</span>
+              <span className="text-ink-faint text-xs">only crafter with stock</span>
+            </div>
+          ) : (
+            <select
+              value={entry.crafterId}
+              onChange={(e) => onUpdate({ crafterId: e.target.value })}
+              className={selectClass}
+            >
+              <option value="">
+                {craftersToShow.length === 0 && resolvedName ? "No crafters with stock" : "Select crafter…"}
+              </option>
+              {craftersToShow.map((c) => {
+                const crafterStock = resolvedName
+                  ? getCrafterStock(c.id, entry.itemType, entry.itemName)
+                  : null;
+                return (
+                  <option key={c.id} value={c.id}>
+                    {c.characterName}{crafterStock !== null ? ` (${crafterStock} available)` : ""}
+                  </option>
+                );
+              })}
+            </select>
+          )}
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { RaidNightForm } from "@/components/RaidNightForm";
 
 export default async function NewUsagePage() {
   const [crafters, batches, presets] = await Promise.all([
-    prisma.crafter.findMany({ where: { active: true }, orderBy: { characterName: "asc" } }),
+    prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
     prisma.craftBatch.findMany({
       orderBy: { craftedAt: "asc" },
       include: {
