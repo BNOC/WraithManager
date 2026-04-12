@@ -1,9 +1,11 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { ConsumablesFilter } from "@/components/ConsumablesFilter";
+import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 import type { ItemType } from "@prisma/client";
 
 function formatGold(n: number) {
@@ -24,6 +26,10 @@ interface PageProps {
 export default async function ConsumablesPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const hideEmpty = params.hideEmpty === "1";
+
+  const cookieStore = await cookies();
+  const user = await verifySessionToken(cookieStore.get(SESSION_COOKIE)?.value);
+  const canEdit = user?.toLowerCase() === "bnoc";
 
   const crafters = await prisma.crafter.findMany({ orderBy: { name: "asc" } });
 
@@ -118,6 +124,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                 <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Owed</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Payment</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-faint">Date</th>
+                {canEdit && <th className="px-4 py-3" />}
               </tr>
             </thead>
             <tbody>
@@ -176,6 +183,16 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                     <PaymentBadge paidAmount={row.paidAmount} owedAmount={row.owedAmount} status={row.paymentStatus} />
                   </td>
                   <td className="px-4 py-3 text-ink-dim text-xs whitespace-nowrap">{formatDate(row.craftedAt)}</td>
+                  {canEdit && (
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/consumables/${row.id}/edit`}
+                        className="text-xs text-ink-faint hover:text-primary transition-colors whitespace-nowrap"
+                      >
+                        Edit
+                      </Link>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

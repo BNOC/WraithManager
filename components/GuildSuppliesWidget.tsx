@@ -29,17 +29,6 @@ export async function GuildSuppliesWidget() {
       className="mx-3 mb-3 rounded-xl border border-primary/25 relative overflow-hidden"
       style={{ background: "var(--color-surface)" }}
     >
-      {/* Dot-grid background layer */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, color-mix(in srgb, var(--color-primary) 18%, transparent) 1px, transparent 1px)",
-          backgroundSize: "14px 14px",
-          maskImage: "linear-gradient(to bottom, transparent 0%, black 40%, black 60%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 40%, black 60%, transparent 100%)",
-        }}
-      />
 
       {/* Top accent line */}
       <div className="h-px w-full bg-linear-to-r from-transparent via-primary/60 to-transparent" />

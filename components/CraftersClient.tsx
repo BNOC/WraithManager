@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { createCrafter, setCrafterActive } from "@/lib/actions";
 
 function formatGold(n: number) {
@@ -32,7 +33,12 @@ function CrafterCard({ crafter }: { crafter: CrafterStat }) {
     <div className={`bg-surface border rounded-2xl p-4 shadow-lg shadow-black/30 transition-opacity ${crafter.active ? "border-rim" : "border-rim/50 opacity-60"}`}>
       <div className="flex items-start justify-between mb-4">
         <div className="min-w-0">
-          <h3 className="font-bold text-ink text-lg leading-tight truncate">{crafter.name}</h3>
+          <Link
+              href={`/crafters/${crafter.id}`}
+              className="font-bold text-ink text-lg leading-tight truncate hover:text-primary transition-colors"
+            >
+              {crafter.name}
+            </Link>
           {!crafter.active && (
             <span className="text-xs text-ink-faint font-medium uppercase tracking-wider">Inactive</span>
           )}

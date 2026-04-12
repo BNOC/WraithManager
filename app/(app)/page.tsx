@@ -148,7 +148,7 @@ export default async function DashboardPage() {
       {/* Stat card */}
       <div className="relative bg-surface border border-rim rounded-2xl shadow-xl shadow-black/40 overflow-hidden">
         {/* Subtle gradient top shimmer */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
 
         <div className="grid grid-cols-4 divide-x divide-rim">
           {[
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
             { label: "Inventory Value", shortLabel: "Inv.", value: formatGold(totalInventoryValue), abbr: formatGoldAbbr(totalInventoryValue), accent: false, sub: null },
             { label: "Total Spent", shortLabel: "Spent", value: formatGold(grandTotalCost), abbr: formatGoldAbbr(grandTotalCost), accent: false, sub: null },
           ].map(({ label, shortLabel, value, abbr, accent, sub }) => (
-            <div key={label} className={`relative px-4 sm:px-7 py-4 sm:py-6 ${accent ? "bg-primary/5" : ""}`}>
+            <div key={label} className={`relative px-4 sm:px-7 py-4 sm:py-6 overflow-hidden ${accent ? "bg-primary/5" : ""}`}>
               {accent && <div className="absolute top-0 inset-x-0 h-0.5 bg-primary/50" />}
               <p className="text-ink-faint text-[10px] sm:text-[11px] font-semibold uppercase tracking-widest">
                 <span className="sm:hidden">{shortLabel}</span>
@@ -296,7 +296,7 @@ export default async function DashboardPage() {
           ) : (
             <div className="space-y-2">
               {activeSummaries.map((c) => (
-                <div key={c.id} className="bg-surface border border-rim rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg shadow-black/20">
+                <Link key={c.id} href={`/crafters/${c.id}`} className="bg-surface border border-rim rounded-2xl px-5 py-4 flex items-center justify-between shadow-lg shadow-black/20 hover:border-primary/40 transition-colors">
                   <p className="font-semibold text-ink">{c.characterName}</p>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
@@ -310,7 +310,7 @@ export default async function DashboardPage() {
                       <p className="text-ink-faint text-xs">outstanding</p>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
