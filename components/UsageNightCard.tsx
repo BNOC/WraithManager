@@ -52,10 +52,11 @@ export interface UsageNightCardProps {
   raidDate: string;
   nightValue: number;
   logs: UsageLogRow[];
+  defaultOpen?: boolean;
 }
 
-export function UsageNightCard({ dateKey, raidDate, nightValue, logs }: UsageNightCardProps) {
-  const [open, setOpen] = useState(true);
+export function UsageNightCard({ dateKey, raidDate, nightValue, logs, defaultOpen = false }: UsageNightCardProps) {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div className="bg-surface border border-rim rounded-2xl overflow-hidden shadow-lg shadow-black/30">

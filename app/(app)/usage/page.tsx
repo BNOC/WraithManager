@@ -3,7 +3,27 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { UsageNightCard } from "@/components/UsageNightCard";
+import { MissingNightRow } from "@/components/MissingNightRow";
 import type { UsageNightCardProps } from "@/components/UsageNightCard";
+
+// Raid days: 1=Mon, 3=Wed, 4=Thu (UTC day-of-week)
+const RAID_DAYS = new Set([1, 3, 4]);
+const SEASON_START = "2026-03-18"; // first logged raid night
+
+function getExpectedRaidNights(until: Date): string[] {
+  const nights: string[] = [];
+  const start = new Date(`${SEASON_START}T00:00:00.000Z`);
+  const cur = new Date(start);
+  // Normalize 'until' to midnight UTC
+  const end = new Date(Date.UTC(until.getUTCFullYear(), until.getUTCMonth(), until.getUTCDate()));
+  while (cur <= end) {
+    if (RAID_DAYS.has(cur.getUTCDay())) {
+      nights.push(cur.toISOString().slice(0, 10));
+    }
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return nights;
+}
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -37,6 +57,11 @@ export default async function UsagePage() {
     nights.get(key)!.push(log);
   }
   const nightEntries = [...nights.entries()];
+
+  // Expected nights from season start to today — find gaps
+  const loggedKeys = new Set(nightEntries.map(([k]) => k));
+  const expectedNights = getExpectedRaidNights(new Date());
+  const missingKeys = new Set(expectedNights.filter((k) => !loggedKeys.has(k)));
 
   // Serialize to plain objects for client components
   const nightCards: UsageNightCardProps[] = nightEntries.map(([dateKey, nightLogs]) => {
@@ -98,9 +123,24 @@ export default async function UsagePage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {nightCards.map((card) => (
-            <UsageNightCard key={card.dateKey} {...card} />
-          ))}
+          {(() => {
+            // Merge logged and missing into one desc-sorted list
+            const allKeys = [...new Set([...nightCards.map((c) => c.dateKey), ...missingKeys])]
+              .sort((a, b) => b.localeCompare(a));
+
+            const cardMap = new Map(nightCards.map((c) => [c.dateKey, c]));
+            let loggedCount = 0;
+
+            return allKeys.map((dateKey) => {
+              const card = cardMap.get(dateKey);
+              if (card) {
+                const isFirst = loggedCount === 0;
+                loggedCount++;
+                return <UsageNightCard key={dateKey} {...card} defaultOpen={isFirst} />;
+              }
+              return <MissingNightRow key={dateKey} dateKey={dateKey} />;
+            });
+          })()}
         </div>
       )}
     </div>

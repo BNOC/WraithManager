@@ -3,7 +3,8 @@ export const dynamic = "force-dynamic";
 import prisma from "@/lib/prisma";
 import { RaidNightForm } from "@/components/RaidNightForm";
 
-export default async function NewUsagePage() {
+export default async function NewUsagePage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
+  const params = await searchParams;
   const [crafters, batches, presets] = await Promise.all([
     prisma.crafter.findMany({ orderBy: { characterName: "asc" } }),
     prisma.craftBatch.findMany({
@@ -28,7 +29,9 @@ export default async function NewUsagePage() {
     }))
     .filter((b) => b.remaining > 0);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = (params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date))
+    ? params.date
+    : new Date().toISOString().slice(0, 10);
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
