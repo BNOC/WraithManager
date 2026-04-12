@@ -91,12 +91,12 @@ export const BG_THEMES: BgTheme[] = [
   },
 ];
 
-const DEFAULT_PRIMARY = "#8788ee";
+export const DEFAULT_PRIMARY = "#8788ee";
 const DEFAULT_BG = BG_THEMES[0];
 const STORAGE_KEY_PRIMARY = "wraithdebt-theme-primary";
 const STORAGE_KEY_BG = "wraithdebt-theme-bg";
 
-const USER_DEFAULT_PRIMARY: Record<string, string> = {
+export const USER_DEFAULT_PRIMARY: Record<string, string> = {
   bnoc:  "#33937f", // Evoker
   hafad: "#c41e3a", // DK
   phae:  "#ff7c0a", // Druid

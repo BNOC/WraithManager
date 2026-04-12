@@ -2,10 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { loginAction } from "./actions";
+import { USER_DEFAULT_PRIMARY, DEFAULT_PRIMARY } from "@/components/ThemeProvider";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function handleUsernameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const color = USER_DEFAULT_PRIMARY[e.target.value.toLowerCase()];
+    document.documentElement.style.setProperty("--theme-primary", color ?? DEFAULT_PRIMARY);
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,6 +49,7 @@ export default function LoginPage() {
                 required
                 autoComplete="username"
                 autoFocus
+                onChange={handleUsernameChange}
                 className="w-full bg-surface border border-rim rounded-xl px-4 py-3 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
                 placeholder="Your name"
               />
