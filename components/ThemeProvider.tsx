@@ -5,8 +5,8 @@ import { createContext, useContext, useState, useLayoutEffect } from "react";
 export const WOW_COLORS: { name: string; color: string }[] = [
   { name: "Warlock", color: "#8788ee" },
   { name: "Evoker", color: "#33937f" },
-  { name: "Death Knight", color: "#c41e3a" },
-  { name: "Demon Hunter", color: "#a330c9" },
+  { name: "DK", color: "#c41e3a" },
+  { name: "DH", color: "#a330c9" },
   { name: "Paladin", color: "#f48cba" },
   { name: "Druid", color: "#ff7c0a" },
   { name: "Mage", color: "#3fc7eb" },
@@ -96,6 +96,14 @@ const DEFAULT_BG = BG_THEMES[0];
 const STORAGE_KEY_PRIMARY = "wraithdebt-theme-primary";
 const STORAGE_KEY_BG = "wraithdebt-theme-bg";
 
+const USER_DEFAULT_PRIMARY: Record<string, string> = {
+  bnoc:  "#33937f", // Evoker
+  hafad: "#c41e3a", // DK
+  phae:  "#ff7c0a", // Druid
+  react: "#a330c9", // DH
+  cassy: "#f48cba", // Paladin
+};
+
 interface ThemeContextValue {
   primary: string;
   setPrimary: (color: string) => void;
@@ -121,7 +129,7 @@ function applyBgTheme(theme: BgTheme) {
   el.style.setProperty("--theme-ink", theme.ink);
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children, username }: { children: React.ReactNode; username?: string }) {
   const [primary, setPrimaryState] = useState(DEFAULT_PRIMARY);
   const [bgTheme, setBgState] = useState<BgTheme>(DEFAULT_BG);
 
@@ -130,6 +138,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (storedPrimary) {
       document.documentElement.style.setProperty("--theme-primary", storedPrimary);
       setPrimaryState(storedPrimary);
+    } else if (username) {
+      const userDefault = USER_DEFAULT_PRIMARY[username.toLowerCase()];
+      if (userDefault) {
+        document.documentElement.style.setProperty("--theme-primary", userDefault);
+        setPrimaryState(userDefault);
+      }
     }
 
     const storedBgName = localStorage.getItem(STORAGE_KEY_BG);
@@ -140,7 +154,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setBgState(found);
       }
     }
-  }, []);
+  }, [username]);
 
   function setPrimary(color: string) {
     document.documentElement.style.setProperty("--theme-primary", color);
