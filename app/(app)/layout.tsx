@@ -1,5 +1,5 @@
-import { SideNav } from "@/components/SideNav";
-import { ThemePicker } from "@/components/ThemePicker";
+import { SideNav } from "@/components/layout/SideNav";
+import { ThemePicker } from "@/components/layout/ThemePicker";
 import { MobileThemeButton } from "@/components/ui/MobileThemeButton";
 import { MobileLogoutButton } from "@/components/ui/MobileLogoutButton";
 import { GuildSuppliesWidget } from "@/components/GuildSuppliesWidget";

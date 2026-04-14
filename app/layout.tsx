@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 const poppins = Poppins({

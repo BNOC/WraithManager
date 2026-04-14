@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { loginAction } from "./actions";
-import { USER_DEFAULT_PRIMARY, DEFAULT_PRIMARY } from "@/components/ThemeProvider";
+import { USER_DEFAULT_PRIMARY, DEFAULT_PRIMARY } from "@/components/layout/ThemeProvider";
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useTheme, WOW_COLORS } from "@/components/ThemeProvider";
+import { useTheme, WOW_COLORS } from "@/components/layout/ThemeProvider";
 
 export function MobileThemeButton() {
   const { primary, setPrimary } = useTheme();
