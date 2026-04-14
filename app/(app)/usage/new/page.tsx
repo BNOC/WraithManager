@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import prisma from "@/lib/prisma";
-import { RaidNightForm } from "@/components/RaidNightForm";
+import { RaidNightForm } from "@/components/usage/RaidNightForm";
 
 export default async function NewUsagePage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const params = await searchParams;

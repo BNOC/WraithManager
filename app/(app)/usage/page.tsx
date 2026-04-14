@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { UsageNightCard } from "@/components/UsageNightCard";
-import { MissingNightRow } from "@/components/MissingNightRow";
+import { UsageNightCard } from "@/components/usage/UsageNightCard";
+import { MissingNightRow } from "@/components/usage/MissingNightRow";
 import type { UsageNightCardProps } from "@/lib/queries/usage";
 import { getUsagePageData } from "@/lib/queries/usage";
 import { formatGold } from "@/lib/utils/format";

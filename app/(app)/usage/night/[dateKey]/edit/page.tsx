@@ -2,8 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { RaidNightForm } from "@/components/RaidNightForm";
-import type { EntryState } from "@/components/RaidNightForm";
+import { RaidNightForm } from "@/components/usage/RaidNightForm";
+import type { EntryState } from "@/components/usage/RaidNightEntryRow";
 
 export default async function EditRaidNightPage({ params }: { params: Promise<{ dateKey: string }> }) {
   const { dateKey } = await params;

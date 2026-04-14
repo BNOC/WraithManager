@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { UsageEditForm } from "@/components/UsageEditForm";
+import { UsageEditForm } from "@/components/usage/UsageEditForm";
 
 interface PageProps {
   params: Promise<{ id: string }>;
