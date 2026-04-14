@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { BatchPayButton } from "@/components/payments/BatchPayButton";
+import type { CrafterPaymentStat } from "@/lib/queries/payments";
 
 const PAGE_SIZE = 10;
 
@@ -18,29 +19,8 @@ function formatDate(d: Date | string) {
   });
 }
 
-export interface BatchRow {
-  id: string;
-  itemType: string;
-  itemName: string;
-  craftedAt: Date | string;
-  quantity: number;
-  costPerUnit: number;
-  paidAmount: number;
-  usedQty: number;
-  unusedQty: number;
-  owedAmount: number;
-}
-
-interface Props {
-  id: string;
-  characterName: string;
-  totalOwed: number;
-  totalPaid: number;
-  balance: number;
-  batchRows: BatchRow[];
-}
-
-export function CrafterPayCard({ characterName, totalOwed, totalPaid, balance, batchRows }: Props) {
+export function CrafterPayCard({ crafter }: { crafter: CrafterPaymentStat }) {
+  const { characterName, totalOwed, totalPaid, balance, batchRows } = crafter;
   const [open, setOpen] = useState(true);
   const [showAll, setShowAll] = useState(false);
 

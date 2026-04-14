@@ -21,15 +21,7 @@ export default async function PaymentsPage() {
 
       {/* Active crafters */}
       {crafterStats.filter((c) => c.active).map((crafter) => (
-        <CrafterPayCard
-          key={crafter.id}
-          id={crafter.id}
-          characterName={crafter.characterName}
-          totalOwed={crafter.totalOwed}
-          totalPaid={crafter.totalPaid}
-          balance={crafter.balance}
-          batchRows={crafter.batchRows}
-        />
+        <CrafterPayCard key={crafter.id} crafter={crafter} />
       ))}
 
       {/* Inactive crafters */}
@@ -42,15 +34,7 @@ export default async function PaymentsPage() {
             <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-400/70">Inactive Crafters</span>
           </div>
           {crafterStats.filter((c) => !c.active).map((crafter) => (
-            <CrafterPayCard
-              key={crafter.id}
-              id={crafter.id}
-              characterName={crafter.characterName}
-              totalOwed={crafter.totalOwed}
-              totalPaid={crafter.totalPaid}
-              balance={crafter.balance}
-              batchRows={crafter.batchRows}
-            />
+            <CrafterPayCard key={crafter.id} crafter={crafter} />
           ))}
         </div>
       )}
