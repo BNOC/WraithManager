@@ -6,7 +6,6 @@ import { ItemTypeBadge } from "@/components/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/RaidDayBadge";
 import { InventoryBreakdown } from "@/components/InventoryBreakdown";
-import { WelcomeWidget } from "@/components/WelcomeWidget";
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -179,9 +178,6 @@ export default async function DashboardPage() {
           ))}
         </div>
       </div>
-
-      {/* Welcome widget */}
-      {/* <WelcomeWidget /> */}
 
       {/* Inventory */}
       {(() => {
