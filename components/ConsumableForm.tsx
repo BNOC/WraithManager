@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createCraftBatch } from "@/lib/actions";
+import { createCraftBatch } from "@/lib/actions/batches";
 import { DateInput } from "@/components/ui/DateInput";
 
 interface Crafter {

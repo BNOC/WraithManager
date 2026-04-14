@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { createCrafter, setCrafterActive } from "@/lib/actions";
+import { createCrafter, setCrafterActive } from "@/lib/actions/crafters";
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;

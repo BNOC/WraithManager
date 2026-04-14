@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { createNotePreset } from "@/lib/actions";
+import { createNotePreset } from "@/lib/actions/presets";
 import { DateInput } from "@/components/ui/DateInput";
 
 interface Crafter {

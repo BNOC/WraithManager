@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { updateUsageLog, deleteUsageLog, type RaidNightEntry } from "@/lib/actions";
+import { updateUsageLog, deleteUsageLog, type RaidNightEntry } from "@/lib/actions/usage";
 import { DateInput } from "@/components/ui/DateInput";
 
 interface Crafter {

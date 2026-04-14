@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { createPriceConfig } from "@/lib/actions";
+import { createPriceConfig } from "@/lib/actions/prices";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { DateInput } from "@/components/ui/DateInput";

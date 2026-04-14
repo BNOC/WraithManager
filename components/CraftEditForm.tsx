@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { updateCraftBatch, deleteCraftBatch } from "@/lib/actions";
+import { updateCraftBatch, deleteCraftBatch } from "@/lib/actions/batches";
 import { DateInput } from "@/components/ui/DateInput";
 import { useState } from "react";
 
