@@ -58,32 +58,49 @@ export function UsageIcon() {
 }
 
 export function PaymentsIcon() {
-  // Wallet with a card slot
+  // Pile of coins (gold)
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <rect x="1.5" y="4.5" width="13" height="9" rx="1.8" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M1.5 7.5h13" stroke="currentColor" strokeWidth="1.1" opacity=".5" />
-      <path d="M4 4.5V3.5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v1" stroke="currentColor" strokeWidth="1.1" opacity=".5" />
-      <rect x="9.5" y="9.5" width="3" height="2" rx="0.7" fill="currentColor" opacity=".6" />
+      {/* Bottom coin stack */}
+      <ellipse cx="8" cy="12.5" rx="5.5" ry="1.8" fill="currentColor" opacity=".35" />
+      {/* Middle coin */}
+      <ellipse cx="8" cy="10" rx="5.5" ry="1.8" fill="currentColor" opacity=".55" />
+      {/* Top face */}
+      <ellipse cx="8" cy="7.5" rx="5.5" ry="1.8" fill="currentColor" />
+      {/* Coin rim */}
+      <path d="M2.5 7.5v2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" opacity=".4" />
+      <path d="M13.5 7.5v2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" opacity=".4" />
+      <path d="M2.5 10v2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" opacity=".25" />
+      <path d="M13.5 10v2.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" opacity=".25" />
+      {/* Shine on top */}
+      <path d="M6 7.1 Q8 6.3 10 7.1" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" opacity=".4" />
     </svg>
   );
 }
 
 export function CraftersIcon() {
+  // User silhouette with a small hammer badge
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <circle cx="8" cy="5" r="3" />
-      <path d="M2 14c0-3.31 2.69-5 6-5s6 1.69 6 5" opacity=".6" />
+      <circle cx="7" cy="5" r="2.8" />
+      <path d="M1.5 14c0-3 2.4-4.8 5.5-4.8s5.5 1.8 5.5 4.8" opacity=".6" />
+      {/* Small hammer top-right */}
+      <g transform="translate(9.5, 1.5) rotate(-35)">
+        {/* Head */}
+        <rect x="0" y="0" width="3.2" height="2" rx="0.5" fill="currentColor" />
+        {/* Handle */}
+        <rect x="1.2" y="2" width="0.9" height="2.8" rx="0.4" fill="currentColor" opacity=".75" />
+      </g>
     </svg>
   );
 }
 
 export function PricesIcon() {
+  // Dollar sign
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M2 2h6l6 6-6 6-6-6V2z" opacity=".3" />
-      <path d="M2 2h6l6 6-6 6-6-6V2z" stroke="currentColor" strokeWidth="1.2" fill="none" />
-      <circle cx="6" cy="6" r="1.2" />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1.5v13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M11 4.5a3 3 0 0 0-3-1.5 3 3 0 0 0 0 6 3 3 0 0 1 0 6A3 3 0 0 1 5 13.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }
