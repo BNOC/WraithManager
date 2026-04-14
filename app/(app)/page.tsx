@@ -1,125 +1,27 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import prisma from "@/lib/prisma";
+import { getDashboardData } from "@/lib/queries/dashboard";
+import { formatGold, formatGoldAbbr, formatDate } from "@/lib/utils/format";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/ui/RaidDayBadge";
 import { InventoryBreakdown } from "@/components/InventoryBreakdown";
 
-function formatGold(n: number) {
-  return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
-}
-
-function formatGoldAbbr(n: number) {
-  if (n >= 1_000_000) return `${+(n / 1_000_000).toFixed(1)}m`;
-  if (n >= 1_000) return `${+(n / 1_000).toFixed(1)}k`;
-  return `${Math.round(n)}g`;
-}
-
-function formatDate(d: Date) {
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 export default async function DashboardPage() {
-  const [crafters, recentBatches, recentUsage, allBatches] = await Promise.all([
-    prisma.crafter.findMany({
-      include: {
-        batches: {
-          include: { usageLines: { select: { quantity: true, costPerUnit: true } } },
-        },
-      },
-    }),
-    prisma.craftBatch.findMany({
-      orderBy: { craftedAt: "desc" },
-      take: 5,
-      include: { crafter: true },
-    }),
-    prisma.usageLog.findMany({
-      orderBy: { raidDate: "desc" },
-      take: 5,
-      include: { lines: { include: { batch: { include: { crafter: true } } } } },
-    }),
-    prisma.craftBatch.findMany({
-      include: {
-        usageLines: { select: { quantity: true } },
-        crafter: { select: { active: true, characterName: true } },
-      },
-    }),
-  ]);
-
-  const crafterSummaries = crafters.map((crafter) => {
-    const totalOwed = crafter.batches.reduce((s, b) => s + b.quantity * b.costPerUnit, 0);
-    const totalPaid = crafter.batches.reduce((s, b) => s + b.paidAmount, 0);
-    const outstanding = Math.max(0, totalOwed - totalPaid);
-    return { ...crafter, totalOwed, totalPaid, outstanding };
-  });
-
-  const activeSummaries = crafterSummaries.filter((c) => (c as typeof c & { active: boolean }).active);
-  const grandOutstanding = crafterSummaries.reduce((s, c) => s + c.outstanding, 0);
-  const grandTotalPaid = crafterSummaries.reduce((s, c) => s + c.totalPaid, 0);
-  const grandTotalCost = allBatches.reduce((s: number, b: { costPerUnit: number; usageLines: { quantity: number }[] }) => {
-    const used = b.usageLines.reduce((u: number, l: { quantity: number }) => u + l.quantity, 0);
-    return s + used * b.costPerUnit;
-  }, 0);
-
-  // Inventory — only count active crafters
-  type BatchCrafter = { active: boolean; characterName: string };
-  const inventoryMap = new Map<string, { itemType: string; itemName: string; remaining: number; total: number; remainingValue: number }>();
-  // Per-crafter breakdown: key → crafterName → remaining
-  const breakdownRaw = new Map<string, Map<string, number>>();
-  let grandWastedValue = 0;
-  for (const b of allBatches) {
-    const crafter = b.crafter as BatchCrafter;
-    // Tradeable items (VANTUS_RUNE) can be passed to other players — count all stock regardless of crafter status
-    const isWarbound = b.itemType !== "VANTUS_RUNE";
-    if (isWarbound && !crafter.active) {
-      const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
-      grandWastedValue += (b.quantity - used) * b.costPerUnit;
-      continue; // warbound inactive crafter stock is wasted
-    }
-    const used = b.usageLines.reduce((s, l) => s + l.quantity, 0);
-    const remaining = b.quantity - used;
-    const key = `${b.itemType}::${b.itemName}`;
-    if (!inventoryMap.has(key)) inventoryMap.set(key, { itemType: b.itemType, itemName: b.itemName, remaining: 0, total: 0, remainingValue: 0 });
-    const entry = inventoryMap.get(key)!;
-    entry.remaining += remaining;
-    entry.total += b.quantity;
-    entry.remainingValue += remaining * b.costPerUnit;
-    // Breakdown — only track batches with remaining stock
-    if (remaining > 0) {
-      const bKey = b.itemType === "FEAST" ? "FEAST::Feast" : key;
-      if (!breakdownRaw.has(bKey)) breakdownRaw.set(bKey, new Map());
-      const cm = breakdownRaw.get(bKey)!;
-      // Vantus Runes are tradeable — show as Guild Bank regardless of crafter
-      const label = b.itemType === "VANTUS_RUNE" ? "Guild Bank" : crafter.active ? crafter.characterName : `${crafter.characterName} (inactive)`;
-      cm.set(label, (cm.get(label) ?? 0) + remaining);
-    }
-  }
-  // Serialise breakdown for client component
-  const breakdown = new Map<string, { crafterName: string; remaining: number }[]>();
-  for (const [key, cm] of breakdownRaw) {
-    breakdown.set(key, [...cm.entries()].map(([crafterName, remaining]) => ({ crafterName, remaining })));
-  }
-  const TYPE_ORDER: Record<string, number> = { FLASK_CAULDRON: 0, POTION_CAULDRON: 1, FEAST: 2, VANTUS_RUNE: 3, OTHER: 4 };
-
-  // Always show these types even with no batches (feast handled separately)
-  const PINNED: { type: string; name: string }[] = [
-    { type: "FLASK_CAULDRON", name: "Flask Cauldron" },
-    { type: "POTION_CAULDRON", name: "Potion Cauldron" },
-    { type: "VANTUS_RUNE", name: "Vantus Rune" },
-  ];
-  for (const { type, name } of PINNED) {
-    const key = `${type}::${name}`;
-    if (!inventoryMap.has(key)) {
-      inventoryMap.set(key, { itemType: type, itemName: name, remaining: 0, total: 0, remainingValue: 0 });
-    }
-  }
-
-  const inventory = [...inventoryMap.values()].sort(
-    (a, b) => (TYPE_ORDER[a.itemType] ?? 9) - (TYPE_ORDER[b.itemType] ?? 9) || a.itemName.localeCompare(b.itemName)
-  );
-  const totalInventoryValue = inventory.reduce((s, i) => s + i.remainingValue, 0);
+  const {
+    crafterSummaries,
+    activeSummaries,
+    grandOutstanding,
+    grandTotalPaid,
+    grandTotalCost,
+    grandWastedValue,
+    inventory,
+    totalInventoryValue,
+    breakdown,
+    recentBatches,
+    recentUsage,
+  } = await getDashboardData();
 
   return (
     <div className="space-y-8">
@@ -147,7 +49,6 @@ export default async function DashboardPage() {
 
       {/* Stat card */}
       <div className="relative bg-surface border border-rim rounded-2xl shadow-xl shadow-black/40 overflow-hidden">
-        {/* Subtle gradient top shimmer */}
         <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent" />
 
         <div className="grid grid-cols-4 divide-x divide-rim">
@@ -336,7 +237,6 @@ export default async function DashboardPage() {
                 const crafterName = log.lines[0]?.batch.crafter.name;
                 return (
                   <div key={log.id} className="bg-surface border border-rim rounded-2xl px-4 py-3 shadow-lg shadow-black/20">
-                    {/* Row 1: date + pill + value */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0 flex-wrap">
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -347,13 +247,11 @@ export default async function DashboardPage() {
                           <ItemTypeIcon type={log.itemType} size={16} />
                           <ItemTypeBadge type={log.itemType} small />
                         </div>
-                        {/* Desktop only: name + qty inline */}
                         {log.itemName && <span className="hidden sm:inline text-ink-dim text-xs truncate">{log.itemName}</span>}
                         <span className="hidden sm:inline text-ink font-bold text-sm shrink-0">×{log.quantityUsed}</span>
                       </div>
                       <span className="text-primary font-medium text-sm shrink-0">{value > 0 ? formatGold(value) : "—"}</span>
                     </div>
-                    {/* Row 2: mobile only — name · qty · crafter */}
                     <div className="sm:hidden flex items-center gap-2 mt-1.5 text-xs text-ink-dim">
                       {log.itemName && <span>{log.itemName}</span>}
                       <span className="text-ink font-bold">×{log.quantityUsed}</span>
@@ -397,13 +295,11 @@ export default async function DashboardPage() {
                 {recentBatches.map((b) => (
                   <tr key={b.id} className="hover:bg-surface-hi/50 transition-colors">
                     <td className="px-5 py-3.5">
-                      {/* Desktop: all inline */}
                       <div className="hidden sm:flex items-center gap-2">
                         <ItemTypeIcon type={b.itemType} size={16} />
                         <span className="text-ink font-medium">{b.itemName}</span>
                         <ItemTypeBadge type={b.itemType} />
                       </div>
-                      {/* Mobile: icon + name on row 1, pill on row 2 */}
                       <div className="sm:hidden">
                         <div className="flex items-center gap-2">
                           <ItemTypeIcon type={b.itemType} size={16} />
