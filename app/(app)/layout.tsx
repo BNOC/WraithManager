@@ -2,7 +2,7 @@ import { SideNav } from "@/components/layout/SideNav";
 import { ThemePicker } from "@/components/layout/ThemePicker";
 import { MobileThemeButton } from "@/components/ui/MobileThemeButton";
 import { MobileLogoutButton } from "@/components/ui/MobileLogoutButton";
-import { GuildSuppliesWidget } from "@/components/GuildSuppliesWidget";
+import { GuildSuppliesWidget } from "@/components/dashboard/GuildSuppliesWidget";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

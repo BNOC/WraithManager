@@ -6,7 +6,7 @@ import { formatGold, formatGoldAbbr, formatDate } from "@/lib/utils/format";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/ui/RaidDayBadge";
-import { InventoryBreakdown } from "@/components/InventoryBreakdown";
+import { InventoryBreakdown } from "@/components/dashboard/InventoryBreakdown";
 
 export default async function DashboardPage() {
   const {
