@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
-import { CraftEditForm } from "@/components/CraftEditForm";
+import { CraftEditForm } from "@/components/crafters/CraftEditForm";
 
 export default async function EditCraftPage({ params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();

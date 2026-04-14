@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { CrafterPayCard } from "@/components/CrafterPayCard";
+import { CrafterPayCard } from "@/components/crafters/CrafterPayCard";
 import { getPaymentsData } from "@/lib/queries/payments";
 import { formatGoldAbbr } from "@/lib/utils/format";
 
