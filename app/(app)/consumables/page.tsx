@@ -2,22 +2,11 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { cookies } from "next/headers";
-import prisma from "@/lib/prisma";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { ConsumablesFilter } from "@/components/ConsumablesFilter";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
-import type { ItemType } from "@prisma/client";
-
-function formatGold(n: number) {
-  return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
-}
-
-function formatDate(d: Date) {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
+import { getConsumablesData } from "@/lib/queries/consumables";
+import { formatGold, formatDateShort } from "@/lib/utils/format";
 
 interface PageProps {
   searchParams: Promise<{ crafter?: string; type?: string; hideEmpty?: string }>;
@@ -31,47 +20,11 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
   const user = await verifySessionToken(cookieStore.get(SESSION_COOKIE)?.value);
   const canEdit = user?.toLowerCase() === "bnoc";
 
-  const crafters = await prisma.crafter.findMany({ orderBy: { name: "asc" } });
-
-  const where: Record<string, unknown> = {};
-  if (params.crafter) where.crafterId = params.crafter;
-  if (
-    params.type &&
-    ["FLASK_CAULDRON", "POTION_CAULDRON", "FEAST", "VANTUS_RUNE", "OTHER"].includes(params.type)
-  ) {
-    where.itemType = params.type as ItemType;
-  }
-
-  const batches = await prisma.craftBatch.findMany({
-    where,
-    orderBy: { craftedAt: "desc" },
-    include: {
-      crafter: true,
-      usageLines: { select: { quantity: true, costPerUnit: true } },
-    },
+  const { crafters, rows: visibleRows } = await getConsumablesData({
+    crafter: params.crafter,
+    type: params.type,
+    hideEmpty,
   });
-
-  // Derive per-batch stats
-  const rows = batches.map((b) => {
-    const usedQty = b.usageLines.reduce((s, l) => s + l.quantity, 0);
-    const usedValue = b.usageLines.reduce((s, l) => s + l.quantity * l.costPerUnit, 0);
-    const remaining = b.quantity - usedQty;
-    const totalValue = b.quantity * b.costPerUnit;
-    const owedAmount = totalValue; // full batch is always owed regardless of usage
-    const paymentStatus =
-      b.paidAmount >= owedAmount && owedAmount > 0
-        ? "paid"
-        : b.paidAmount > 0
-        ? "partial"
-        : "unpaid";
-    const crafterActive = (b.crafter as typeof b.crafter & { active: boolean }).active;
-    // Tradeable items (VANTUS_RUNE) can be passed to other players — not wasted when crafter leaves
-    const isWarbound = b.itemType !== "VANTUS_RUNE";
-    const isWasted = !crafterActive && remaining > 0 && isWarbound;
-    return { ...b, usedQty, usedValue, remaining, totalValue, owedAmount, paymentStatus, crafterActive, isWarbound, isWasted };
-  });
-
-  const visibleRows = hideEmpty ? rows.filter((r) => r.remaining > 0 && !r.isWasted) : rows;
 
   return (
     <div className="space-y-6">
@@ -91,7 +44,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
       {/* Filters */}
       <div className="relative">
         <ConsumablesFilter
-          crafters={crafters.map((c) => ({ id: c.id, name: c.name }))}
+          crafters={crafters}
           activeCrafter={params.crafter ?? ""}
           activeType={params.type ?? ""}
           hideEmpty={hideEmpty}
@@ -182,7 +135,7 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
                   <td className="px-4 py-3">
                     <PaymentBadge paidAmount={row.paidAmount} owedAmount={row.owedAmount} status={row.paymentStatus} />
                   </td>
-                  <td className="px-4 py-3 text-ink-dim text-xs whitespace-nowrap">{formatDate(row.craftedAt)}</td>
+                  <td className="px-4 py-3 text-ink-dim text-xs whitespace-nowrap">{formatDateShort(row.craftedAt)}</td>
                   {canEdit && (
                     <td className="px-4 py-3">
                       <Link

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { RaidDayBadge } from "@/components/ui/RaidDayBadge";
+import type { UsageNightCardProps, UsageNightCardLog as UsageLogRow } from "@/lib/queries/usage";
+export type { UsageNightCardProps };
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
@@ -40,33 +42,6 @@ function sortLogs(logs: UsageLogRow[]) {
     const ob = TYPE_ORDER[b.itemType] ?? 99;
     return oa !== ob ? oa - ob : a.itemType.localeCompare(b.itemType);
   });
-}
-
-export interface UsageLine {
-  id: string;
-  quantity: number;
-  costPerUnit: number;
-  crafterName: string;
-  batchCraftedAt: string;
-}
-
-export interface UsageLogRow {
-  id: string;
-  itemType: string;
-  itemName: string | null;
-  quantityUsed: number;
-  notes: string | null;
-  lineValue: number;
-  unattributed: number;
-  lines: UsageLine[];
-}
-
-export interface UsageNightCardProps {
-  dateKey: string;
-  raidDate: string;
-  nightValue: number;
-  logs: UsageLogRow[];
-  defaultOpen?: boolean;
 }
 
 function LogRow({ log }: { log: UsageLogRow }) {
