@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
-import { ItemTypeIcon } from "@/components/ItemTypeIcon";
+import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { ConsumablesFilter } from "@/components/ConsumablesFilter";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 import type { ItemType } from "@prisma/client";

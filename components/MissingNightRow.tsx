@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { RaidDayBadge } from "@/components/RaidDayBadge";
+import { RaidDayBadge } from "@/components/ui/RaidDayBadge";
 
 function formatDate(dateKey: string) {
   return new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString("en-US", {

@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { ItemTypeIcon } from "@/components/ItemTypeIcon";
+import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import type { ItemType } from "@prisma/client";
 
 const TYPES: { key: ItemType; label: string }[] = [

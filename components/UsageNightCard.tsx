@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ItemTypeBadge } from "@/components/ItemTypeBadge";
-import { ItemTypeIcon } from "@/components/ItemTypeIcon";
-import { RaidDayBadge } from "@/components/RaidDayBadge";
+import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
+import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
+import { RaidDayBadge } from "@/components/ui/RaidDayBadge";
 
 function formatGold(n: number) {
   return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;

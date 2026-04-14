@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import Link from "next/link";
 import { updateCraftBatch, deleteCraftBatch } from "@/lib/actions";
-import { DateInput } from "@/components/DateInput";
+import { DateInput } from "@/components/ui/DateInput";
 import { useState } from "react";
 
 interface Props {

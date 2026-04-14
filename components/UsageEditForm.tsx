@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { updateUsageLog, deleteUsageLog, type RaidNightEntry } from "@/lib/actions";
-import { DateInput } from "@/components/DateInput";
+import { DateInput } from "@/components/ui/DateInput";
 
 interface Crafter {
   id: string;

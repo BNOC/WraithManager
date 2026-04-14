@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ItemTypeBadge } from "@/components/ItemTypeBadge";
-import { ItemTypeIcon } from "@/components/ItemTypeIcon";
+import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
+import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { BatchPayButton } from "@/components/BatchPayButton";
 
 const PAGE_SIZE = 10;

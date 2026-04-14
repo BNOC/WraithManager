@@ -2,9 +2,9 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { ItemTypeBadge } from "@/components/ItemTypeBadge";
-import { ItemTypeIcon } from "@/components/ItemTypeIcon";
-import { RaidDayBadge } from "@/components/RaidDayBadge";
+import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
+import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
+import { RaidDayBadge } from "@/components/ui/RaidDayBadge";
 import { InventoryBreakdown } from "@/components/InventoryBreakdown";
 
 function formatGold(n: number) {

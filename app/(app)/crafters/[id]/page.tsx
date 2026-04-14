@@ -3,8 +3,8 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { ItemTypeIcon } from "@/components/ItemTypeIcon";
-import { ItemTypeBadge } from "@/components/ItemTypeBadge";
+import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
+import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { BatchPayButton } from "@/components/BatchPayButton";
 
 function formatGold(n: number) {
