@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
-import { ConsumableForm } from "@/components/ConsumableForm";
+import { ConsumableForm } from "@/components/consumables/ConsumableForm";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export default async function NewConsumablePage() {

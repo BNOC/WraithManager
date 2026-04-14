@@ -3,7 +3,8 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
-import { ConsumablesFilter } from "@/components/ConsumablesFilter";
+import { ConsumablesFilter } from "@/components/consumables/ConsumablesFilter";
+import { PaymentBadge } from "@/components/consumables/PaymentBadge";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 import { getConsumablesData } from "@/lib/queries/consumables";
 import { formatGold, formatDateShort } from "@/lib/utils/format";
@@ -155,28 +156,5 @@ export default async function ConsumablesPage({ searchParams }: PageProps) {
       )}
     </div>
   );
-}
-
-function PaymentBadge({
-  paidAmount,
-  owedAmount,
-  status,
-}: {
-  paidAmount: number;
-  owedAmount: number;
-  status: string;
-}) {
-  if (owedAmount === 0) return <span className="text-ink-faint text-xs">Nothing owed</span>;
-  if (status === "paid")
-    return (
-      <span className="text-xs text-green-400 font-medium">✓ Paid</span>
-    );
-  if (status === "partial")
-    return (
-      <span className="text-xs text-amber-400">
-        Part-paid ({Math.round((paidAmount / owedAmount) * 100)}%)
-      </span>
-    );
-  return <span className="text-xs text-ink-dim">Unpaid</span>;
 }
 
