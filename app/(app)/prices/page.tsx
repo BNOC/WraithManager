@@ -1,11 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import prisma from "@/lib/prisma";
 import { createPriceConfig } from "@/lib/actions/prices";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { DateInput } from "@/components/ui/DateInput";
+import { getPricesData } from "@/lib/queries/prices";
+import { formatGold, formatDate } from "@/lib/utils/format";
+import { inputClass, labelClass } from "@/lib/utils/classes";
 import type { ItemType } from "@prisma/client";
 
 const ALL_TYPES: { value: ItemType; label: string }[] = [
@@ -24,18 +26,6 @@ const TYPE_ORDER: Record<string, number> = {
   OTHER: 4,
 };
 
-function formatGold(n: number) {
-  return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
-}
-
-function formatDate(d: Date) {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 interface PageProps {
   searchParams: Promise<{ sort?: string; dir?: string; type?: string }>;
 }
@@ -46,15 +36,7 @@ export default async function PricesPage({ searchParams }: PageProps) {
   const dir = params.dir ?? "desc";
   const typeFilter = ALL_TYPES.find((t) => t.value === params.type)?.value ?? null;
 
-  const allConfigs = await prisma.priceConfig.findMany({
-    orderBy: { effectiveDate: "desc" },
-  });
-
-  // Derive current price per type (first/most-recent entry per type)
-  const currentPrices = new Map<ItemType, (typeof allConfigs)[0]>();
-  for (const c of allConfigs) {
-    if (!currentPrices.has(c.itemType)) currentPrices.set(c.itemType, c);
-  }
+  const { allConfigs, currentPrices } = await getPricesData();
 
   // Filter then sort history
   const filtered = typeFilter ? allConfigs.filter((c) => c.itemType === typeFilter) : allConfigs;
@@ -72,10 +54,6 @@ export default async function PricesPage({ searchParams }: PageProps) {
   });
 
   const today = new Date().toISOString().slice(0, 10);
-
-  const inputClass =
-    "w-full bg-surface-hi border border-rim rounded-xl px-3 py-2.5 text-ink text-sm placeholder-ink-faint focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors";
-  const labelClass = "block text-sm font-medium text-ink mb-1.5";
 
   function sortUrl(col: string) {
     const newDir = sort === col && dir === "desc" ? "asc" : "desc";

@@ -2,54 +2,18 @@ export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import prisma from "@/lib/prisma";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
 import { BatchPayButton } from "@/components/BatchPayButton";
-
-function formatGold(n: number) {
-  return `${n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}g`;
-}
-
-function formatDate(d: Date | string) {
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { getCrafterDetail } from "@/lib/queries/crafters";
+import { formatGold, formatDate } from "@/lib/utils/format";
 
 export default async function CrafterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const crafter = await prisma.crafter.findUnique({
-    where: { id },
-    include: {
-      batches: {
-        orderBy: { craftedAt: "desc" },
-        include: {
-          usageLines: { select: { quantity: true, costPerUnit: true } },
-        },
-      },
-    },
-  });
-
-  if (!crafter) notFound();
-
-  const batches = crafter.batches.map((b) => {
-    const totalValue = b.quantity * b.costPerUnit;
-    const usedQty = b.usageLines.reduce((s, l) => s + l.quantity, 0);
-    const unusedQty = b.quantity - usedQty;
-    const outstanding = Math.max(0, totalValue - b.paidAmount);
-    const isFullyPaid = b.paidAmount >= totalValue;
-    const isPartial = !isFullyPaid && b.paidAmount > 0;
-    return { ...b, totalValue, usedQty, unusedQty, outstanding, isFullyPaid, isPartial };
-  });
-
-  const totalOwed = batches.reduce((s, b) => s + b.totalValue, 0);
-  const totalPaid = batches.reduce((s, b) => s + b.paidAmount, 0);
-  const grandOutstanding = Math.max(0, totalOwed - totalPaid);
-  const pct = totalOwed > 0 ? Math.min(100, (totalPaid / totalOwed) * 100) : 100;
+  const data = await getCrafterDetail(id);
+  if (!data) notFound();
+  const { characterName, active, batches, grandOutstanding, totalOwed, totalPaid, pct } = data;
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -68,8 +32,8 @@ export default async function CrafterDetailPage({ params }: { params: Promise<{ 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-ink-faint text-xs font-semibold uppercase tracking-widest mb-1">Crafter</p>
-          <h1 className="text-3xl font-bold text-ink">{crafter.characterName}</h1>
-          {!crafter.active && (
+          <h1 className="text-3xl font-bold text-ink">{characterName}</h1>
+          {!active && (
             <span className="inline-block mt-1 text-xs text-ink-faint font-medium uppercase tracking-wider">Inactive</span>
           )}
         </div>
@@ -120,7 +84,7 @@ export default async function CrafterDetailPage({ params }: { params: Promise<{ 
             <div className="absolute left-[19px] top-2 bottom-2 w-px bg-rim" />
 
             <div className="space-y-4">
-              {batches.map((batch, i) => {
+              {batches.map((batch) => {
                 const dotColor = batch.isFullyPaid
                   ? "#34d399"  // emerald
                   : batch.isPartial
