@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ItemTypeIcon } from "@/components/ui/ItemTypeIcon";
 import { ItemTypeBadge } from "@/components/ui/ItemTypeBadge";
-import { BatchPayButton } from "@/components/BatchPayButton";
+import { BatchPayButton } from "@/components/payments/BatchPayButton";
 import { getCrafterDetail } from "@/lib/queries/crafters";
 import { formatGold, formatDate } from "@/lib/utils/format";
 
